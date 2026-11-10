@@ -3,95 +3,235 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Deep Sub Bass – Synth Mono</title>
+<meta name="theme-color" content="#0e0d0c">
+<title>AURA Synth Bass</title>
 <style>
-  :root{--bg:#14161a;--card:#1d2026;--line:#2c313a;--fg:#e8eaee;--mut:#8b93a1;--acc:#ff9f1c;--ok:#3ecf8e;--bad:#ff5d5d}
+  :root{
+    --room:#0e0d0c; --panel1:#d9dbde; --panel2:#b9bcc1; --ink:#16181b; --ink2:#4a4f57;
+    --wood1:#6b3f1f; --wood2:#3f230f; --amber:#ffab2e; --led:#ff5a36; --ok:#3ddc84; --oled:#7fe9ff;
+  }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;touch-action:manipulation}
-  .wrap{max-width:960px;margin:0 auto;padding:14px}
-  h1{font-size:20px;margin:4px 0 12px;letter-spacing:.3px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
-  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-  button{font:inherit;color:var(--fg);background:#2a2f38;border:1px solid var(--line);border-radius:10px;padding:12px 16px;min-height:46px}
-  button.primary{background:var(--acc);color:#1a1200;border:0;font-weight:700}
-  button.on{outline:2px solid var(--acc)}
-  .pill{font-size:13px;padding:5px 10px;border-radius:99px;background:#262a31;color:var(--mut)}
-  .pill.ok{color:var(--ok)} .pill.bad{color:var(--bad)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px 18px}
-  label{display:flex;justify-content:space-between;font-size:14px;color:var(--mut);margin-bottom:4px}
-  label b{color:var(--fg);font-weight:600}
-  input[type=range]{width:100%;height:34px;accent-color:var(--acc)}
-  select{font:inherit;background:#2a2f38;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:44px;width:100%}
-  #kb{position:relative;height:150px;user-select:none;-webkit-user-select:none;touch-action:none}
-  .k{position:absolute;top:0;border:1px solid #111;border-radius:0 0 6px 6px}
-  .k.w{background:#f1f1f1;height:100%} .k.b{background:#111;height:62%;z-index:2}
-  .k.w.d{background:var(--acc)} .k.b.d{background:#c97a00}
-  small{color:var(--mut)}
+  html,body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#2a2622,var(--room));color:var(--ink);
+    font-family:"Avenir Next","Futura","Helvetica Neue",Helvetica,Arial,sans-serif;min-height:100vh;
+    -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  .stage{max-width:1180px;margin:0 auto;padding:14px 10px 24px}
+
+  /* corpo do instrumento: laterais de madeira + painel de alumínio */
+  .synth{display:flex;border-radius:14px;box-shadow:0 24px 50px rgba(0,0,0,.65),0 2px 0 rgba(255,255,255,.08) inset;overflow:hidden}
+  .cheek{flex:0 0 22px;background:
+      repeating-linear-gradient(92deg,rgba(0,0,0,.18) 0 2px,transparent 2px 7px),
+      linear-gradient(180deg,var(--wood1),var(--wood2));
+    box-shadow:inset -3px 0 6px rgba(0,0,0,.45)}
+  .cheek.r{box-shadow:inset 3px 0 6px rgba(0,0,0,.45)}
+  .body{flex:1;min-width:0;background:#101113}
+  .panel{position:relative;padding:14px 16px 16px;
+    background:
+      repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.035) 1px 3px),
+      linear-gradient(180deg,var(--panel1),var(--panel2));
+    border-bottom:3px solid #0b0c0d}
+
+  /* cabeçalho */
+  .top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-bottom:12px}
+  .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+  .brand b{font-size:30px;letter-spacing:9px;font-weight:800;color:var(--ink)}
+  .brand span{font-size:12px;letter-spacing:5px;font-weight:600;color:var(--ink2)}
+  .oled{background:#050607;border-radius:8px;padding:8px 10px;border:2px solid #2b2e33;box-shadow:inset 0 0 12px rgba(0,0,0,.9);
+    display:flex;align-items:center;gap:10px;min-width:250px}
+  .oled canvas{display:block;width:120px;height:46px}
+  .oled .txt{font-family:"SF Mono",Menlo,Consolas,monospace;color:var(--oled);font-size:11px;line-height:1.5;letter-spacing:.5px;text-shadow:0 0 6px rgba(127,233,255,.6)}
+  .oled .txt b{display:block;font-size:13px}
+
+  .btn{font:inherit;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#e9eaec;
+    background:linear-gradient(180deg,#3a3d43,#1d1f23);border:1px solid #0a0a0b;border-radius:8px;padding:0 14px;min-height:46px;
+    display:inline-flex;align-items:center;gap:9px;box-shadow:0 2px 0 rgba(255,255,255,.25) inset,0 3px 6px rgba(0,0,0,.35)}
+  .btn:active{transform:translateY(1px)}
+  .btn i{width:9px;height:9px;border-radius:50%;background:#3a1a14;box-shadow:inset 0 0 2px #000}
+  .btn.on i{background:var(--led);box-shadow:0 0 8px var(--led)}
+  .btn.ok i{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+  .btn.err i{background:#ffd23e;box-shadow:0 0 8px #ffd23e}
+
+  .status{font-size:12px;color:var(--ink2);margin:0 0 12px;min-height:16px;letter-spacing:.2px}
+
+  /* seções */
+  .sections{display:flex;flex-wrap:wrap;gap:10px}
+  .sec{flex:1 1 auto;border:1.5px solid var(--ink);border-radius:10px;padding:16px 10px 8px;position:relative;background:rgba(255,255,255,.12)}
+  .sec h2{position:absolute;top:-9px;left:12px;margin:0;padding:1px 8px;font-size:10px;letter-spacing:3px;font-weight:800;
+    background:var(--ink);color:#e9eaec;border-radius:4px}
+  .ctrls{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:flex-start;justify-content:center}
+
+  /* knob */
+  .kn{width:76px;text-align:center}
+  .dial{width:70px;height:70px;margin:0 auto;border-radius:50%;position:relative;touch-action:none;cursor:ns-resize;
+    background:repeating-conic-gradient(from -135deg,var(--ink) 0 1.6deg,transparent 1.6deg 27deg)}
+  .dial::before{content:"";position:absolute;inset:7px;border-radius:50%;background:linear-gradient(180deg,var(--panel1),var(--panel2))}
+  .cap{position:absolute;inset:11px;border-radius:50%;
+    background:radial-gradient(circle at 35% 28%,#5a5e66,#17181b 62%);
+    box-shadow:0 5px 9px rgba(0,0,0,.55),inset 0 1px 1px rgba(255,255,255,.35)}
+  .cap::after{content:"";position:absolute;left:50%;top:4px;width:3px;height:17px;margin-left:-1.5px;border-radius:2px;background:#f4f4f4}
+  .kn.big .dial{width:86px;height:86px} .kn.big{width:92px}
+  .kn.big .cap::after{background:var(--amber);height:21px}
+  .kn label{display:block;margin-top:5px;font-size:10px;letter-spacing:1.6px;font-weight:800;color:var(--ink)}
+  .kn output{display:block;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;color:var(--ink2);min-height:14px}
+
+  /* seletores */
+  .sel{text-align:center}
+  .sel .cap2{font-size:10px;letter-spacing:1.6px;font-weight:800;margin-top:6px}
+  .seg{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid #0a0a0b;box-shadow:0 3px 6px rgba(0,0,0,.35)}
+  .seg button{font:inherit;border:0;background:linear-gradient(180deg,#3a3d43,#1d1f23);color:#9aa0a9;min-width:50px;min-height:46px;padding:0 8px;
+    border-right:1px solid #0a0a0b;font-weight:800;font-size:16px}
+  .seg button:last-child{border-right:0}
+  .seg button.on{color:var(--amber);background:linear-gradient(180deg,#22242a,#0f1012);text-shadow:0 0 8px rgba(255,171,46,.7)}
+  .seg svg{width:30px;height:18px;display:block;margin:0 auto;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+  .octv{font-family:"SF Mono",Menlo,Consolas,monospace;background:#050607;color:var(--oled);min-width:48px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;border-right:1px solid #0a0a0b}
+  .stack{display:flex;flex-direction:column;gap:12px;align-items:center;padding:2px 6px}
+
+  /* presets */
+  .presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .presets .btn{flex:1 1 150px;justify-content:center}
+
+  /* teclado */
+  .keysWrap{background:linear-gradient(180deg,#0b0c0d,#191b1e);padding:10px 12px 14px}
+  #kb{position:relative;height:190px;touch-action:none}
+  .k{position:absolute;top:0}
+  .k.w{height:100%;background:linear-gradient(180deg,#e9e6dd 0,#fbfaf6 12%,#f1eee6 100%);border:1px solid #6d6a63;border-radius:0 0 6px 6px;box-shadow:inset 0 -8px 8px rgba(0,0,0,.12)}
+  .k.b{height:60%;z-index:2;background:linear-gradient(180deg,#2d2f33,#060607);border-radius:0 0 5px 5px;box-shadow:0 4px 5px rgba(0,0,0,.6),inset 0 -6px 4px rgba(255,255,255,.08)}
+  .k.w.d{background:linear-gradient(180deg,#ffd089,#ffab2e)}
+  .k.b.d{background:linear-gradient(180deg,#b06a05,#6a3e00)}
+  .hint{color:#8d8a84;font-size:12px;text-align:center;margin-top:12px;line-height:1.5}
+  @media (max-width:560px){ .brand b{font-size:24px;letter-spacing:6px} #kb{height:150px} .oled{min-width:0;flex:1} }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Deep Sub Bass · synth mono</h1>
+<div class="stage">
+  <div class="synth">
+    <div class="cheek"></div>
+    <div class="body">
+      <div class="panel">
+        <div class="top">
+          <div class="brand"><b>AURA</b><span>SYNTH BASS</span></div>
+          <div class="oled">
+            <canvas id="scope" width="240" height="92"></canvas>
+            <div class="txt"><b id="oPreset">DEEP SUB BASS</b><span id="oMidi">MIDI: —</span></div>
+          </div>
+          <button id="start" class="btn"><i></i>Ligar áudio</button>
+          <button id="midiBtn" class="btn"><i></i>Conectar MIDI</button>
+        </div>
+        <p class="status" id="midiInfo">Toque em “Ligar áudio” e depois em “Conectar MIDI”. Gire os knobs arrastando para cima e para baixo.</p>
 
-  <div class="card">
-    <div class="row">
-      <button id="start" class="primary">1 · Ligar áudio</button>
-      <button id="midiBtn">2 · Conectar MIDI (SMK-25)</button>
-      <span id="audioSt" class="pill">áudio desligado</span>
-      <span id="midiSt" class="pill">MIDI não conectado</span>
+        <div class="sections">
+          <div class="sec"><h2>OSCILADOR</h2>
+            <div class="ctrls">
+              <div class="stack">
+                <div class="sel">
+                  <div class="seg" id="waveSeg">
+                    <button data-w="square" title="Quadrada"><svg viewBox="0 0 30 18"><path d="M2 14V4h9v10h9V4h8"/></svg></button>
+                    <button data-w="sawtooth" title="Dente de serra"><svg viewBox="0 0 30 18"><path d="M2 14L14 4v10L26 4v10"/></svg></button>
+                    <button data-w="triangle" title="Triângulo"><svg viewBox="0 0 30 18"><path d="M2 14l6.5-10 6.5 10 6.5-10L28 14"/></svg></button>
+                  </div>
+                  <div class="cap2">ONDA</div>
+                </div>
+                <div class="sel">
+                  <div class="seg"><button id="octDn">−</button><span class="octv" id="octV">-1</span><button id="octUp">+</button></div>
+                  <div class="cap2">OITAVA</div>
+                </div>
+              </div>
+              <div id="sec_osc" class="ctrls"></div>
+            </div>
+          </div>
+          <div class="sec"><h2>FILTRO</h2><div id="sec_flt" class="ctrls"></div></div>
+          <div class="sec"><h2>ENVELOPE</h2><div id="sec_env" class="ctrls"></div></div>
+          <div class="sec"><h2>SAÍDA</h2><div id="sec_out" class="ctrls"></div></div>
+        </div>
+
+        <div class="presets">
+          <button class="btn on" data-p="deep"><i></i>Deep Sub Bass</button>
+          <button class="btn" data-p="reggae"><i></i>Reggae Pop</button>
+          <button class="btn" data-p="equalize"><i></i>Equalize</button>
+        </div>
+      </div>
+      <div class="keysWrap"><div id="kb"></div></div>
     </div>
-    <div style="margin-top:10px"><small id="midiInfo">Ligue o áudio primeiro (um toque é obrigatório). Depois conecte o MIDI. Se o SMK-25 não aparecer, use o teclado de tela abaixo para testar o som.</small></div>
-    <div style="margin-top:6px"><small id="lastMsg"></small></div>
+    <div class="cheek r"></div>
   </div>
-
-  <div class="card">
-    <div class="row">
-      <button data-p="deep" class="on">Deep Sub Bass</button>
-      <button data-p="reggae">Reggae Pop</button>
-      <button data-p="equalize">Equalize (ponto de partida)</button>
-    </div>
-  </div>
-
-  <div class="card grid">
-    <div><label>Oitava <b id="v_oct"></b></label><input id="oct" type="range" min="-3" max="1" step="1" value="-1"></div>
-    <div><label>Onda <b></b></label>
-      <select id="wave"><option value="square">Quadrada</option><option value="sawtooth">Dente de serra</option><option value="triangle">Triângulo</option></select></div>
-    <div><label>Sub (seno) <b id="v_sub"></b></label><input id="sub" type="range" min="0" max="1" step="0.01" value="0.35"></div>
-    <div><label>Cutoff <b id="v_cut"></b></label><input id="cut" type="range" min="0" max="1" step="0.001" value="0.41"></div>
-    <div><label>Envelope do filtro <b id="v_fenv"></b></label><input id="fenv" type="range" min="0" max="4" step="0.05" value="0.8"></div>
-    <div><label>Glide <b id="v_glide"></b></label><input id="glide" type="range" min="0" max="0.4" step="0.005" value="0.03"></div>
-    <div><label>Ataque <b id="v_a"></b></label><input id="a" type="range" min="0.002" max="1" step="0.001" value="0.008"></div>
-    <div><label>Decay <b id="v_d"></b></label><input id="d" type="range" min="0.02" max="2" step="0.005" value="0.295"></div>
-    <div><label>Sustain <b id="v_s"></b></label><input id="s" type="range" min="0" max="1" step="0.01" value="0.59"></div>
-    <div><label>Release <b id="v_r"></b></label><input id="r" type="range" min="0.02" max="2" step="0.005" value="0.19"></div>
-    <div><label>Volume <b id="v_vol"></b></label><input id="vol" type="range" min="0" max="3" step="0.01" value="1.6"></div>
-  </div>
-
-  <div class="card">
-    <div id="kb"></div>
-    <div style="margin-top:8px"><small>Teclado de teste (toque e arraste). Pitch bend do SMK: +2 semitons acima, −12 abaixo. Pedal de sustain (CC64) funciona.</small></div>
-  </div>
+  <div class="hint">Pitch bend: +2 semitons acima, −12 abaixo · pedal de sustain (CC64) · toque duplo no knob volta ao valor do preset<br><span id="lastMsg"></span></div>
 </div>
 
 <script>
 (function(){
   const $ = id => document.getElementById(id);
-  let ctx=null, osc=null, sub=null, oscG=null, subG=null, f1=null, f2=null, amp=null, master=null, comp=null;
-  const P = {oct:-1, wave:'square', sub:0.35, cut:0.41, fenv:0.8, glide:0.03, a:0.008, d:0.295, s:0.59, r:0.19, vol:1.6};
-  let bend = 0; // -1..1
-  let stack = []; // notas seguradas, ordem de chegada
-  let sustainOn = false, held = new Set(); // notas soltas mas seguradas pelo pedal
-  let gate = false;
-
-  const cutHz = v => 30 * Math.pow(18000/30, v);   // 0..1 -> 30..18000 Hz (log)
-  const mtof = n => 440 * Math.pow(2, (n-69)/12);
-
-  const fmt = {
-    oct:v=>(v>0?'+':'')+v, sub:v=>Math.round(v*100)+'%', cut:v=>Math.round(cutHz(v))+' Hz',
-    fenv:v=>v.toFixed(2)+' oit', glide:v=>Math.round(v*1000)+' ms', a:v=>Math.round(v*1000)+' ms',
-    d:v=>Math.round(v*1000)+' ms', s:v=>Math.round(v*100)+'%', r:v=>Math.round(v*1000)+' ms', vol:v=>v.toFixed(2)+'×'
+  let ctx=null, osc=null, sub=null, oscG=null, subG=null, f1=null, f2=null, amp=null, master=null, comp=null, an=null;
+  const PRESETS = {
+    deep:    {name:'DEEP SUB BASS', oct:-1, wave:'square',   sub:0.35, cut:0.41, fenv:0.8, glide:0.03,  a:0.008, d:0.295, s:0.59, r:0.19, vol:1.6},
+    reggae:  {name:'REGGAE POP',    oct:-1, wave:'triangle', sub:0.45, cut:0.55, fenv:0.6, glide:0.015, a:0.004, d:0.35,  s:0.55, r:0.12, vol:1.8},
+    equalize:{name:'EQUALIZE',      oct:-1, wave:'sawtooth', sub:0.30, cut:0.50, fenv:1.2, glide:0.0,   a:0.003, d:0.22,  s:0.45, r:0.08, vol:1.4}
   };
+  const P = Object.assign({}, PRESETS.deep);
+  let curPreset = 'deep';
+  let bend = 0, stack = [], sustainOn = false, held = new Set(), gate = false;
 
+  const cutHz = v => 30 * Math.pow(18000/30, v);
+  const mtof = n => 440 * Math.pow(2, (n-69)/12);
+  const ms = v => Math.round(v*1000)+' ms', pc = v => Math.round(v*100)+'%';
+
+  // ---------- Knobs ----------
+  const KNOBS = [
+    {id:'sub',  sec:'osc', label:'SUB',      min:0,     max:1,   exp:1, fmt:pc},
+    {id:'glide',sec:'osc', label:'GLIDE',    min:0,     max:0.4, exp:2, fmt:ms},
+    {id:'cut',  sec:'flt', label:'CUTOFF',   min:0,     max:1,   exp:1, fmt:v=>Math.round(cutHz(v))+' Hz', big:true},
+    {id:'fenv', sec:'flt', label:'ENV AMT',  min:0,     max:4,   exp:1, fmt:v=>v.toFixed(2)+' oit'},
+    {id:'a',    sec:'env', label:'ATTACK',   min:0.002, max:1,   exp:3, fmt:ms},
+    {id:'d',    sec:'env', label:'DECAY',    min:0.02,  max:2,   exp:2, fmt:ms},
+    {id:'s',    sec:'env', label:'SUSTAIN',  min:0,     max:1,   exp:1, fmt:pc},
+    {id:'r',    sec:'env', label:'RELEASE',  min:0.02,  max:2,   exp:2, fmt:ms},
+    {id:'vol',  sec:'out', label:'VOLUME',   min:0,     max:3,   exp:1, fmt:v=>v.toFixed(2)+'×', big:true}
+  ];
+  const KN = {};
+  const toPos = (k,v) => Math.pow(Math.min(1,Math.max(0,(v-k.min)/(k.max-k.min))), 1/k.exp);
+  const toVal = (k,p) => k.min + (k.max-k.min)*Math.pow(p,k.exp);
+  function drawKnob(k){
+    const p = toPos(k,P[k.id]);
+    k.cap.style.transform = 'rotate('+(-135+p*270)+'deg)';
+    k.out.textContent = k.fmt(P[k.id]);
+  }
+  KNOBS.forEach(k=>{
+    const w=document.createElement('div'); w.className='kn'+(k.big?' big':'');
+    w.innerHTML='<div class="dial"><div class="cap"></div></div><label>'+k.label+'</label><output></output>';
+    $('sec_'+k.sec).appendChild(w);
+    k.dial=w.querySelector('.dial'); k.cap=w.querySelector('.cap'); k.out=w.querySelector('output'); KN[k.id]=k;
+    let startY=0, startP=0, drag=false, lastTap=0;
+    k.dial.addEventListener('pointerdown',e=>{
+      const now=Date.now();
+      if(now-lastTap<320){ P[k.id]=PRESETS[curPreset][k.id]; drawKnob(k); applyAll(); lastTap=0; return; }
+      lastTap=now; drag=true; startY=e.clientY; startP=toPos(k,P[k.id]); k.dial.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    k.dial.addEventListener('pointermove',e=>{
+      if(!drag) return;
+      const p=Math.min(1,Math.max(0,startP+(startY-e.clientY)/220));
+      P[k.id]=toVal(k,p); drawKnob(k); applyAll();
+    });
+    const end=()=>{drag=false;};
+    k.dial.addEventListener('pointerup',end); k.dial.addEventListener('pointercancel',end);
+    drawKnob(k);
+  });
+
+  function drawSelectors(){
+    document.querySelectorAll('#waveSeg button').forEach(b=>b.classList.toggle('on',b.dataset.w===P.wave));
+    $('octV').textContent=(P.oct>0?'+':'')+P.oct;
+  }
+  document.querySelectorAll('#waveSeg button').forEach(b=>b.addEventListener('click',()=>{P.wave=b.dataset.w; drawSelectors(); applyAll();}));
+  $('octDn').addEventListener('click',()=>{P.oct=Math.max(-3,P.oct-1); drawSelectors(); retune();});
+  $('octUp').addEventListener('click',()=>{P.oct=Math.min(1,P.oct+1); drawSelectors(); retune();});
+
+  function loadPreset(name){
+    curPreset=name; Object.assign(P,PRESETS[name]);
+    KNOBS.forEach(drawKnob); drawSelectors(); applyAll(); retune();
+    $('oPreset').textContent=PRESETS[name].name;
+    document.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on', b.dataset.p===name));
+  }
+  document.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>loadPreset(b.dataset.p)));
+  drawSelectors();
+
+  // ---------- Áudio ----------
   function initAudio(){
     if(ctx) return;
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -103,126 +243,75 @@
     amp = ctx.createGain(); amp.gain.value = 0;
     comp = ctx.createDynamicsCompressor();
     comp.threshold.value=-14; comp.knee.value=10; comp.ratio.value=5; comp.attack.value=0.004; comp.release.value=0.15;
-    master = ctx.createGain();
-    osc.connect(oscG); sub.connect(subG);
-    oscG.connect(f1); subG.connect(f1);
-    f1.connect(f2); f2.connect(amp); amp.connect(comp); comp.connect(master); master.connect(ctx.destination);
+    master = ctx.createGain(); an = ctx.createAnalyser(); an.fftSize = 1024;
+    osc.connect(oscG); sub.connect(subG); oscG.connect(f1); subG.connect(f1);
+    f1.connect(f2); f2.connect(amp); amp.connect(comp); comp.connect(master); master.connect(an); an.connect(ctx.destination);
     osc.frequency.value = sub.frequency.value = 55;
     f1.frequency.value = f2.frequency.value = cutHz(P.cut);
     osc.start(); sub.start();
     applyAll();
-    $('audioSt').textContent='áudio ligado'; $('audioSt').className='pill ok';
-    $('start').textContent='Áudio ligado ✓';
+    $('start').classList.add('on'); $('start').lastChild.textContent='Áudio ligado';
   }
-
   function applyAll(){
     if(!ctx) return;
-    osc.type = P.wave;
-    oscG.gain.value = 0.45;
-    subG.gain.value = P.sub * 0.6;
-    master.gain.value = P.vol;
+    osc.type = P.wave; oscG.gain.value = 0.45; subG.gain.value = P.sub * 0.6; master.gain.value = P.vol;
     if(!gate){ f1.frequency.value = f2.frequency.value = cutHz(P.cut); }
     updateDetune();
   }
-
-  function updateDetune(){
-    if(!ctx) return;
-    const cents = bend>=0 ? bend*200 : bend*1200;
-    osc.detune.value = cents; sub.detune.value = cents;
-  }
-
-  function noteFreq(n){ return mtof(n + P.oct*12); }
-
-  function holdParam(p,t){
-    if(p.cancelAndHoldAtTime){ p.cancelAndHoldAtTime(t); }
-    else { const v=p.value; p.cancelScheduledValues(t); p.setValueAtTime(v,t); }
-  }
-
+  function updateDetune(){ if(!ctx) return; const c = bend>=0 ? bend*200 : bend*1200; osc.detune.value=c; sub.detune.value=c; }
+  const noteFreq = n => mtof(n + P.oct*12);
+  function holdParam(p,t){ if(p.cancelAndHoldAtTime){ p.cancelAndHoldAtTime(t); } else { const v=p.value; p.cancelScheduledValues(t); p.setValueAtTime(v,t); } }
   function triggerEnv(vel){
-    const t = ctx.currentTime;
-    const peak = 0.45 + 0.55*(vel/127);
-    holdParam(amp.gain,t);
-    amp.gain.linearRampToValueAtTime(peak, t+Math.max(P.a,0.002));
-    amp.gain.setTargetAtTime(peak*P.s, t+P.a, P.d/3);
-    const base = cutHz(P.cut), top = Math.min(base*Math.pow(2,P.fenv), 20000), susF = Math.min(base*Math.pow(2,P.fenv*P.s), 20000);
-    [f1,f2].forEach(f=>{
-      holdParam(f.frequency,t);
-      f.frequency.setValueAtTime(base,t);
-      f.frequency.linearRampToValueAtTime(top, t+Math.max(P.a,0.002));
-      f.frequency.setTargetAtTime(susF, t+P.a, P.d/3);
-    });
+    const t = ctx.currentTime, peak = 0.45 + 0.55*(vel/127), att=Math.max(P.a,0.002);
+    holdParam(amp.gain,t); amp.gain.linearRampToValueAtTime(peak, t+att); amp.gain.setTargetAtTime(peak*P.s, t+att, P.d/3);
+    const base = cutHz(P.cut), top = Math.min(base*Math.pow(2,P.fenv),20000), susF = Math.min(base*Math.pow(2,P.fenv*P.s),20000);
+    [f1,f2].forEach(f=>{ holdParam(f.frequency,t); f.frequency.setValueAtTime(base,t); f.frequency.linearRampToValueAtTime(top,t+att); f.frequency.setTargetAtTime(susF,t+att,P.d/3); });
     gate = true;
   }
-
   function releaseEnv(){
     const t = ctx.currentTime, base = cutHz(P.cut);
-    holdParam(amp.gain,t);
-    amp.gain.setTargetAtTime(0, t, P.r/3);
-    [f1,f2].forEach(f=>{ holdParam(f.frequency,t); f.frequency.setTargetAtTime(base, t, P.r/3); });
+    holdParam(amp.gain,t); amp.gain.setTargetAtTime(0,t,P.r/3);
+    [f1,f2].forEach(f=>{ holdParam(f.frequency,t); f.frequency.setTargetAtTime(base,t,P.r/3); });
     gate = false;
   }
-
   function setPitch(n, immediate){
     const t = ctx.currentTime, fr = noteFreq(n);
-    [osc,sub].forEach((o,i)=>{
-      const f = fr; // sub seno toca na mesma altura; o peso vem da oitava
-      o.frequency.cancelScheduledValues(t);
-      if(immediate || P.glide<0.002){ o.frequency.setValueAtTime(f,t); }
-      else { o.frequency.setTargetAtTime(f, t, P.glide/3); }
-    });
+    [osc,sub].forEach(o=>{ o.frequency.cancelScheduledValues(t);
+      if(immediate || P.glide<0.002) o.frequency.setValueAtTime(fr,t); else o.frequency.setTargetAtTime(fr,t,P.glide/3); });
   }
-
+  function retune(){ if(ctx && stack.length) setPitch(stack[stack.length-1], true); }
   function noteOn(n, vel){
-    if(!ctx || ctx.state!=='running'){ if(ctx) ctx.resume(); else return; }
-    held.delete(n);
-    stack = stack.filter(x=>x!==n); stack.push(n);
-    if(!gate){ setPitch(n,true); triggerEnv(vel||100); }   // primeira nota: dispara envelope
-    else { setPitch(n,false); }                              // legato: só desliza
+    if(!ctx) return; if(ctx.state!=='running') ctx.resume();
+    held.delete(n); stack = stack.filter(x=>x!==n); stack.push(n);
+    if(!gate){ setPitch(n,true); triggerEnv(vel||100); } else { setPitch(n,false); }
     markKey(n,true);
   }
-
-  function noteOff(n){
-    if(!ctx) return;
-    if(sustainOn){ held.add(n); markKey(n,false); return; }
-    realOff(n);
-  }
-  function realOff(n){
-    stack = stack.filter(x=>x!==n); markKey(n,false);
-    if(stack.length===0){ releaseEnv(); }
-    else { setPitch(stack[stack.length-1], false); }
-  }
-  function setSustain(on){
-    sustainOn = on;
-    if(!on){ const hs=[...held]; held.clear(); hs.forEach(realOff); }
-  }
+  function noteOff(n){ if(!ctx) return; if(sustainOn){ held.add(n); markKey(n,false); return; } realOff(n); }
+  function realOff(n){ stack = stack.filter(x=>x!==n); markKey(n,false); if(stack.length===0) releaseEnv(); else setPitch(stack[stack.length-1],false); }
+  function setSustain(on){ sustainOn=on; if(!on){ const hs=[...held]; held.clear(); hs.forEach(realOff); } }
   function allOff(){ stack=[]; held.clear(); if(ctx&&gate) releaseEnv(); document.querySelectorAll('.k.d').forEach(k=>k.classList.remove('d')); }
-
-  // ---------- Controles ----------
-  function bindSlider(id){
-    const el=$(id), out=$('v_'+id);
-    const upd=()=>{ P[id]=parseFloat(el.value); if(out) out.textContent=fmt[id](P[id]); applyAll(); };
-    el.addEventListener('input',upd); upd();
-  }
-  ['oct','sub','cut','fenv','glide','a','d','s','r','vol'].forEach(bindSlider);
-  $('wave').addEventListener('change',e=>{ P.wave=e.target.value; applyAll(); });
-
-  const PRESETS = {
-    deep:    {oct:-1, wave:'square',   sub:0.35, cut:0.41, fenv:0.8, glide:0.03,  a:0.008, d:0.295, s:0.59, r:0.19, vol:1.6},
-    reggae:  {oct:-1, wave:'triangle', sub:0.45, cut:0.55, fenv:0.6, glide:0.015, a:0.004, d:0.35,  s:0.55, r:0.12, vol:1.8},
-    equalize:{oct:-1, wave:'sawtooth', sub:0.30, cut:0.50, fenv:1.2, glide:0.0,   a:0.003, d:0.22,  s:0.45, r:0.08, vol:1.4}
-  };
-  function loadPreset(name){
-    const p=PRESETS[name]; Object.assign(P,p);
-    ['oct','sub','cut','fenv','glide','a','d','s','r','vol'].forEach(id=>{ $(id).value=P[id]; $('v_'+id).textContent=fmt[id](P[id]); });
-    $('wave').value=P.wave; applyAll();
-    document.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on', b.dataset.p===name));
-  }
-  document.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>loadPreset(b.dataset.p)));
 
   $('start').addEventListener('click',()=>{ initAudio(); if(ctx.state!=='running') ctx.resume(); });
 
-  // ---------- Teclado de tela ----------
-  const kb=$('kb'), KEYS=[]; const FIRST=36, LAST=60; // C2..C4 = 25 teclas
+  // ---------- Osciloscópio ----------
+  const cv=$('scope'), g=cv.getContext('2d'); let buf=null;
+  function draw(){
+    requestAnimationFrame(draw);
+    const W=cv.width,H=cv.height; g.clearRect(0,0,W,H);
+    g.strokeStyle='rgba(127,233,255,.18)'; g.lineWidth=1; g.beginPath(); g.moveTo(0,H/2); g.lineTo(W,H/2); g.stroke();
+    g.strokeStyle='#7fe9ff'; g.lineWidth=2.5; g.shadowColor='#7fe9ff'; g.shadowBlur=6; g.beginPath();
+    if(an){
+      if(!buf) buf=new Uint8Array(an.fftSize); an.getByteTimeDomainData(buf);
+      let s=0; for(let i=1;i<buf.length/2;i++){ if(buf[i-1]<128&&buf[i]>=128){ s=i; break; } }
+      const n=buf.length/2;
+      for(let i=0;i<n;i++){ const x=i/(n-1)*W, y=H/2-((buf[s+i]-128)/128)*(H/2-4); i?g.lineTo(x,y):g.moveTo(x,y); }
+    } else { g.moveTo(0,H/2); g.lineTo(W,H/2); }
+    g.stroke(); g.shadowBlur=0;
+  }
+  draw();
+
+  // ---------- Teclado de tela (25 teclas) ----------
+  const kb=$('kb'), KEYS=[]; const FIRST=36, LAST=60;
   const isBlack=n=>[1,3,6,8,10].includes(n%12);
   (function build(){
     let whites=0; for(let n=FIRST;n<=LAST;n++) if(!isBlack(n)) whites++;
@@ -244,9 +333,11 @@
 
   // ---------- MIDI ----------
   let midi=null, count=0;
+  const mBtn=$('midiBtn');
+  function setMidi(cls,short,long){ mBtn.classList.remove('ok','err'); if(cls) mBtn.classList.add(cls); $('oMidi').textContent='MIDI: '+short; $('midiInfo').textContent=long; }
   function onMsg(ev){
-    const [st,d1,d2]=ev.data, cmd=st&0xF0; count++;
-    $('lastMsg').textContent='Última mensagem MIDI: '+Array.from(ev.data).join(' ')+'  ('+count+' recebidas)';
+    const d=ev.data, cmd=d[0]&0xF0, d1=d[1], d2=d[2]; count++;
+    $('lastMsg').textContent='Última mensagem MIDI: '+Array.from(d).join(' ')+' ('+count+' recebidas)';
     if(cmd===0x90 && d2>0) noteOn(d1,d2);
     else if(cmd===0x80 || (cmd===0x90&&d2===0)) noteOff(d1);
     else if(cmd===0xE0){ bend=(((d2<<7)|d1)-8192)/8192; updateDetune(); }
@@ -255,23 +346,17 @@
   function refreshInputs(){
     if(!midi) return;
     const names=[]; midi.inputs.forEach(inp=>{ inp.onmidimessage=onMsg; names.push(inp.name||'entrada MIDI'); });
-    if(names.length){ $('midiSt').textContent='MIDI: '+names.length+' entrada(s)'; $('midiSt').className='pill ok'; $('midiInfo').textContent='Conectado: '+names.join(' · '); }
-    else { $('midiSt').textContent='nenhum dispositivo MIDI'; $('midiSt').className='pill bad'; $('midiInfo').textContent='Navegador com MIDI ativo, mas sem dispositivo. Ligue o SMK-25 e pareie o Bluetooth.'; }
+    if(names.length) setMidi('ok', names[0].slice(0,14).toUpperCase(), 'Conectado: '+names.join(' · '));
+    else setMidi('err','SEM DISPOSITIVO','MIDI ativo, mas nenhum dispositivo encontrado. Ligue o SMK-25 e pareie o Bluetooth com o tablet.');
   }
-  $('midiBtn').addEventListener('click',async()=>{
+  mBtn.addEventListener('click',async()=>{
     if(!ctx) initAudio();
     if(!navigator.requestMIDIAccess){
-      $('midiSt').textContent='sem suporte a MIDI'; $('midiSt').className='pill bad';
-      $('midiInfo').textContent='Este navegador não suporta Web MIDI. No Samsung use Chrome ou Samsung Internet. No iPad o Safari e o Chrome não suportam; use o teclado de tela ou um app com Web MIDI.';
+      setMidi('err','SEM SUPORTE','Este navegador não suporta Web MIDI. No Samsung use Chrome ou Samsung Internet. No iPad o Safari e o Chrome não suportam; use o teclado de tela.');
       return;
     }
-    try{
-      midi=await navigator.requestMIDIAccess({sysex:false});
-      midi.onstatechange=refreshInputs; refreshInputs();
-    }catch(err){
-      $('midiSt').textContent='MIDI bloqueado'; $('midiSt').className='pill bad';
-      $('midiInfo').textContent='Permissão negada ou bloqueada pela página: '+(err&&err.message?err.message:err);
-    }
+    try{ midi=await navigator.requestMIDIAccess({sysex:false}); midi.onstatechange=refreshInputs; refreshInputs(); }
+    catch(err){ setMidi('err','BLOQUEADO','Permissão de MIDI negada: '+(err&&err.message?err.message:err)); }
   });
 
   document.addEventListener('visibilitychange',()=>{ if(document.hidden) allOff(); });

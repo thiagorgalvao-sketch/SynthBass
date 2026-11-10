@@ -1,4 +1,4 @@
-# SynthBass
+# AURA Synth Bass
 
 Synth mono de baixo (Deep Sub Bass, Reggae Pop, Equalize) feito com Web Audio e Web MIDI.
 
