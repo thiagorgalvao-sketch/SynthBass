@@ -199,7 +199,7 @@
   .dlg .btn.cur{color:var(--amber)}
   .dlg .btn.row{justify-content:flex-start;font-size:12px}
   .dlg .btn.row em{font-style:normal;margin-left:auto;font-size:9px;opacity:.6}
-  #mVelSt{opacity:1;color:var(--amber);font-size:10px}
+  #mVelSt, #mBleSt{opacity:1;color:var(--amber);font-size:10px}
   .dlg p{font-size:12px;line-height:1.5;color:var(--ink2);margin:10px 0 0}
 
   /* barra do modo mapeamento (flutua, não desloca nada) */
@@ -320,7 +320,8 @@
   <button id="mLearn" class="btn row">Mapear knobs e botões do controlador</button>
   <button id="mClear" class="btn row">Limpar mapeamento</button>
   <button id="mVel" class="btn row">Sensibilidade ao toque<em id="mVelSt">—</em></button>
-  <button id="mMidi" class="btn row">Conectar MIDI<em id="mMidiSt">—</em></button>
+  <button id="mBle" class="btn row">Conectar por Bluetooth<em id="mBleSt">—</em></button>
+  <button id="mMidi" class="btn row">Conectar por cabo USB<em id="mMidiSt">—</em></button>
   <button class="btn" data-close>Fechar</button>
   <p>Gire os knobs arrastando para cima e para baixo. Toque duplo volta ao valor salvo, marcado pelo ponto vermelho. Toque no visor para abrir a lista de presets. Pitch bend: +2 semitons acima, −12 abaixo. A roda MOD (CC1) adiciona vibrato. O cadeado trava os controles da tela.</p>
   <p id="engineInfo"></p>
@@ -757,13 +758,14 @@
   $('fileIn').addEventListener('change',e=>{ const fs=[...e.target.files]; e.target.value=''; if(fs.length) importFiles(fs); });
 
   // ====================== Menu e cadeado ======================
-  $('menuBtn').addEventListener('click',()=>{ $('mMidiSt').textContent=midiShort; $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); $('engineInfo').textContent='Força da última nota recebida: '+lastVel+' de 127. Motor de som: '+(V&&V.kind==='worklet'?'completo':'básico (sem sync, largura de pulso, drive e envelope de afinação neste navegador)')+'.'; openD('dlgMenu'); });
+  $('menuBtn').addEventListener('click',()=>{ $('mMidiSt').textContent=midi?(midi.inputs.size+' ENTRADA(S)'):(navigator.requestMIDIAccess?'—':'SEM SUPORTE'); $('mBleSt').textContent=bleName?bleName.toUpperCase():(navigator.bluetooth?'TOQUE PARA CONECTAR':'SEM SUPORTE'); $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); $('engineInfo').textContent='Força da última nota recebida: '+lastVel+' de 127. Motor de som: '+(V&&V.kind==='worklet'?'completo':'básico (sem sync, largura de pulso, drive e envelope de afinação neste navegador)')+'.'; openD('dlgMenu'); });
   $('mSave').addEventListener('click',()=>{ closeD('dlgMenu'); openSave(); });
   $('mImport').addEventListener('click',()=>{ closeD('dlgMenu'); $('fileIn').click(); });
   $('mExport').addEventListener('click',()=>{ closeD('dlgMenu'); exportAll(); });
   $('mLearn').addEventListener('click',()=>{ closeD('dlgMenu'); setLearn(true); });
   $('mClear').addEventListener('click',()=>{ ccMap={}; actMap={}; LS.set(MAPKEY,ccMap); LS.set(ACTKEY,actMap); drawMap(); closeD('dlgMenu'); say('Mapeamento apagado'); });
   $('mMidi').addEventListener('click',()=>{ closeD('dlgMenu'); connectMidi(); });
+  $('mBle').addEventListener('click',()=>{ closeD('dlgMenu'); connectBle(); });
   $('mVel').addEventListener('click',()=>{ velLevel=(velLevel+1)%VLEV.length; LS.set(VKEY,velLevel); $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); });
   function setLocked(on){ document.body.classList.toggle('locked',on); $('lockBtn').classList.toggle('on',on); }
   $('lockBtn').addEventListener('click',()=>{ const on=!document.body.classList.contains('locked'); if(on&&learnMode) setLearn(false); setLocked(on); say(on?'Controles da tela travados':'Controles da tela liberados',1800); });
@@ -1042,15 +1044,52 @@
       else if(!applyCC(d1,d2) && d1===1) setMod(d2/127);
     }
   }
+  let bleDev=null, bleName='';
   function refreshInputs(){
-    if(!midi) return;
-    const names=[]; midi.inputs.forEach(inp=>{ inp.onmidimessage=onMsg; names.push(inp.name||'ENTRADA MIDI'); });
-    midiShort = names.length ? names[0].toUpperCase() : 'SEM DISPOSITIVO'; renderOled();
+    const names=[]; if(midi) midi.inputs.forEach(inp=>{ inp.onmidimessage=onMsg; names.push(inp.name||'ENTRADA MIDI'); });
+    if(bleName) names.unshift(bleName+' (BLUETOOTH)');
+    midiShort = names.length ? names[0].toUpperCase() : (midi ? 'SEM DISPOSITIVO' : midiShort); renderOled();
   }
   async function connectMidi(silent){
-    if(!navigator.requestMIDIAccess){ midiShort='SEM SUPORTE NESTE NAVEGADOR'; renderOled(); return; }
+    if(!navigator.requestMIDIAccess){ if(!bleName){ midiShort = navigator.bluetooth ? 'TOQUE NA ENGRENAGEM PARA CONECTAR' : 'SEM SUPORTE NESTE NAVEGADOR'; renderOled(); } if(silent!==true) say('Este navegador não tem MIDI por cabo'); return; }
     try{ midi=await navigator.requestMIDIAccess({sysex:false}); midi.onstatechange=refreshInputs; refreshInputs(); if(silent!==true) say('MIDI: '+midiShort); }
-    catch(err){ midiShort='BLOQUEADO'; renderOled(); }
+    catch(err){ if(!bleName){ midiShort='PERMISSÃO DE MIDI NEGADA'; renderOled(); } }
+  }
+  // ---- MIDI por Bluetooth direto pela página (o pareamento nos ajustes do aparelho não cria a ligação MIDI)
+  const BLE_SVC='03b80e5a-ede8-4b33-a751-6ce34ec4c700', BLE_CHR='7772e5db-3868-4112-a1a9-f2669d106bf3';
+  let bleStatus=0;
+  function bleParse(dv){
+    const n=dv.byteLength; let i=1;                     // byte 0 é o cabeçalho do pacote
+    while(i<n){
+      let b=dv.getUint8(i);
+      if(b&0x80){ i++; if(i>=n) break; b=dv.getUint8(i);                      // marca de tempo, depois (talvez) um novo status
+        if(b&0x80){ i++; if(b>=0xF8) continue; bleStatus=b; } }               // relógio e afins: ignora sem perder o status
+      const hi=bleStatus&0xF0;
+      if(hi<0x80 || hi===0xF0){ while(i<n && !(dv.getUint8(i)&0x80)) i++; continue; }
+      const need=(hi===0xC0||hi===0xD0)?1:2, d=[bleStatus];
+      while(d.length<=need && i<n && !(dv.getUint8(i)&0x80)){ d.push(dv.getUint8(i)); i++; }
+      if(d.length===need+1) onMsg({data:d});
+    }
+  }
+  async function bleLink(dev){
+    const srv=await dev.gatt.connect(), svc=await srv.getPrimaryService(BLE_SVC), ch=await svc.getCharacteristic(BLE_CHR);
+    await ch.startNotifications(); ch.addEventListener('characteristicvaluechanged',e=>bleParse(e.target.value));
+    bleName=dev.name||'CONTROLADOR'; refreshInputs();
+  }
+  async function connectBle(){
+    if(!navigator.bluetooth){ say('Este navegador não conecta por Bluetooth',5000); return; }
+    try{
+      say('Escolha o SMK-25 na lista',6000);
+      const dev=await navigator.bluetooth.requestDevice({filters:[{services:[BLE_SVC]}]});
+      if(bleDev && bleDev!==dev && bleDev.gatt.connected) bleDev.gatt.disconnect();
+      bleDev=dev; say('Conectando a '+(dev.name||'controlador')+'…',8000);
+      dev.addEventListener('gattserverdisconnected',()=>{ bleName=''; refreshInputs(); say('Bluetooth caiu, reconectando…',6000); allOff();
+        let tries=0; const again=()=>{ if(dev!==bleDev || tries++>=5) return; bleLink(dev).then(()=>say('Bluetooth reconectado')).catch(()=>setTimeout(again,1500)); }; setTimeout(again,800); });
+      await bleLink(dev); say('Conectado: '+bleName);
+    }catch(err){
+      if(err && err.name==='NotFoundError') say('Nenhum controlador escolhido',4000);
+      else say('Bluetooth falhou: '+((err&&err.message)||err),7000);
+    }
   }
 
   // ====================== Modo tocar, tela cheia, tela ligada e uso offline ======================
