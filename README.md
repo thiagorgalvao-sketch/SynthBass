@@ -1,5 +1,10 @@
 # AURA Synth Bass
 
-Synth mono de baixo (Deep Sub Bass, Reggae Pop, Equalize) feito com Web Audio e Web MIDI.
+Sintetizador de baixo monofônico que roda no navegador (Web Audio + Web MIDI), feito para ser tocado por um controlador MIDI.
 
 Abra em: https://thiagorgalvao-sketch.github.io/SynthBass/
+
+- Dois osciladores com sync e largura de pulso, sub-oscilador, ruído, filtro de 6 a 24 dB com ressonância e drive, LFO, envelopes de filtro, volume e afinação.
+- 111 presets de fábrica, favoritos, busca, presets do usuário com exportação e importação.
+- Importa presets `.syx` (Moog Sub Phatty) e `.mdp` (Minimoog Model D para iPad) por aproximação.
+- Mapeamento de knobs e botões do controlador, modo tocar em tela cheia e uso sem internet depois da primeira visita.
