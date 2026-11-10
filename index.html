@@ -2,167 +2,199 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#0e0d0c">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AURA Bass">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0b0a09">
 <title>AURA Synth Bass</title>
 <style>
   :root{
-    --room:#0e0d0c; --panel1:#d9dbde; --panel2:#b9bcc1; --ink:#16181b; --ink2:#4a4f57;
-    --wood1:#6b3f1f; --wood2:#3f230f; --amber:#ffab2e; --led:#ff5a36; --ok:#3ddc84; --oled:#7fe9ff;
+    --ink:#15171a; --ink2:#454a52; --amber:#ffab2e; --led:#ff5a36; --ok:#3ddc84; --oled:#7fe9ff;
+    --k:clamp(54px,6vw,80px); --cheek:clamp(12px,2.4vw,34px); --pad:clamp(10px,1.6vw,22px);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#2a2622,var(--room));color:var(--ink);
-    font-family:"Avenir Next","Futura","Helvetica Neue",Helvetica,Arial,sans-serif;min-height:100vh;
+  html,body{margin:0;height:100%;background:#0b0a09;color:var(--ink);overscroll-behavior:none;
+    font-family:"Avenir Next","Futura","Helvetica Neue",Helvetica,Arial,sans-serif;
     -webkit-user-select:none;user-select:none;touch-action:manipulation}
-  .stage{max-width:1180px;margin:0 auto;padding:14px 10px 24px}
 
-  /* corpo do instrumento: laterais de madeira + painel de alumínio */
-  .synth{display:flex;border-radius:14px;box-shadow:0 24px 50px rgba(0,0,0,.65),0 2px 0 rgba(255,255,255,.08) inset;overflow:hidden}
-  .cheek{flex:0 0 22px;background:
-      repeating-linear-gradient(92deg,rgba(0,0,0,.18) 0 2px,transparent 2px 7px),
-      linear-gradient(180deg,var(--wood1),var(--wood2));
-    box-shadow:inset -3px 0 6px rgba(0,0,0,.45)}
-  .cheek.r{box-shadow:inset 3px 0 6px rgba(0,0,0,.45)}
-  .body{flex:1;min-width:0;background:#101113}
-  .panel{position:relative;padding:14px 16px 16px;
+  /* instrumento ocupa a tela toda */
+  .synth{display:flex;min-height:100vh;min-height:100dvh;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  .body{flex:1;min-width:0;display:flex;flex-direction:column;background:#0c0d0e}
+
+  /* madeira: veios gerados por ruído + verniz */
+  .cheek{flex:0 0 var(--cheek);position:relative;
     background:
-      repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.035) 1px 3px),
-      linear-gradient(180deg,var(--panel1),var(--panel2));
-    border-bottom:3px solid #0b0c0d}
+      linear-gradient(90deg,rgba(0,0,0,.55) 0,rgba(0,0,0,0) 22%,rgba(255,225,180,.20) 48%,rgba(0,0,0,0) 72%,rgba(0,0,0,.6) 100%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='900' preserveAspectRatio='none'><filter id='w' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='0.32 0.006' numOctaves='5' seed='11'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.07  0 0 0 0 0.02  2.6 0 0 0 -0.75'/></filter><filter id='p' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='0.9 0.05' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.04  0 0 0 0 0.01  0.9 0 0 0 -0.38'/></filter><rect width='100%' height='100%' fill='%238b5427'/><rect width='100%' height='100%' filter='url(%23w)'/><rect width='100%' height='100%' filter='url(%23p)'/></svg>") center/100% 100%,
+      #6b3f1f;
+    box-shadow:inset 0 2px 2px rgba(255,220,170,.35),inset 0 -3px 4px rgba(0,0,0,.6)}
+  .cheek::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 18%,rgba(0,0,0,0) 80%,rgba(0,0,0,.35))}
+
+  /* alumínio escovado: ruído esticado na horizontal + reflexos */
+  .panel{position:relative;padding:var(--pad) calc(var(--pad) + 14px) calc(var(--pad) + 2px);
+    background:
+      linear-gradient(100deg,rgba(255,255,255,0) 18%,rgba(255,255,255,.42) 34%,rgba(255,255,255,0) 50%,rgba(0,0,0,.07) 72%,rgba(255,255,255,.22) 92%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='300' preserveAspectRatio='none'><filter id='m' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='0.003 0.95' numOctaves='4' seed='5'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncR type='linear' slope='1.9' intercept='-0.45'/><feFuncG type='linear' slope='1.9' intercept='-0.45'/><feFuncB type='linear' slope='1.9' intercept='-0.45'/><feFuncA type='discrete' tableValues='1'/></feComponentTransfer></filter><rect width='100%' height='100%' filter='url(%23m)'/></svg>") center/100% 100%,
+      linear-gradient(180deg,#e3e5e8 0,#c9ccd1 45%,#aeb2b8 100%);
+    background-blend-mode:normal,overlay,normal;
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.85),inset 0 -2px 0 rgba(0,0,0,.35),inset 2px 0 0 rgba(255,255,255,.4),inset -2px 0 0 rgba(0,0,0,.18)}
+  .screw{position:absolute;width:13px;height:13px;border-radius:50%;
+    background:linear-gradient(45deg,transparent 44%,#2a2c30 44% 56%,transparent 56%),conic-gradient(#f4f5f6,#8d9197,#e9ebed,#7d8187,#f4f5f6);
+    box-shadow:0 1px 1px rgba(255,255,255,.8),inset 0 0 0 1px rgba(0,0,0,.35),0 -1px 1px rgba(0,0,0,.35)}
+  .screw.tl{top:7px;left:7px} .screw.tr{top:7px;right:7px;transform:rotate(70deg)}
+  .screw.bl{bottom:7px;left:7px;transform:rotate(120deg)} .screw.br{bottom:7px;right:7px;transform:rotate(25deg)}
 
   /* cabeçalho */
-  .top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-bottom:12px}
+  .top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:8px}
   .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
-  .brand b{font-size:30px;letter-spacing:9px;font-weight:800;color:var(--ink)}
-  .brand span{font-size:12px;letter-spacing:5px;font-weight:600;color:var(--ink2)}
-  .oled{background:#050607;border-radius:8px;padding:8px 10px;border:2px solid #2b2e33;box-shadow:inset 0 0 12px rgba(0,0,0,.9);
-    display:flex;align-items:center;gap:10px;min-width:250px}
-  .oled canvas{display:block;width:120px;height:46px}
-  .oled .txt{font-family:"SF Mono",Menlo,Consolas,monospace;color:var(--oled);font-size:11px;line-height:1.5;letter-spacing:.5px;text-shadow:0 0 6px rgba(127,233,255,.6)}
+  .brand b{font-size:clamp(22px,3vw,34px);letter-spacing:.3em;font-weight:800;color:#1b1d20;text-shadow:0 1px 0 rgba(255,255,255,.75)}
+  .brand span{font-size:clamp(9px,1.1vw,12px);letter-spacing:.42em;font-weight:700;color:var(--ink2);text-shadow:0 1px 0 rgba(255,255,255,.7)}
+  .oled{background:#040506;border-radius:7px;padding:7px 10px;border:1px solid #000;
+    box-shadow:0 1px 0 rgba(255,255,255,.8),0 0 0 3px #26282c,inset 0 0 14px #000;display:flex;align-items:center;gap:10px;min-width:240px}
+  .oled canvas{display:block;width:112px;height:44px}
+  .oled .txt{font-family:"SF Mono",Menlo,Consolas,monospace;color:var(--oled);font-size:10px;line-height:1.45;letter-spacing:.5px;text-shadow:0 0 6px rgba(127,233,255,.6);white-space:nowrap;overflow:hidden}
   .oled .txt b{display:block;font-size:13px}
+  .tools{display:flex;flex-wrap:wrap;gap:8px}
 
-  .btn{font:inherit;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#e9eaec;
-    background:linear-gradient(180deg,#3a3d43,#1d1f23);border:1px solid #0a0a0b;border-radius:8px;padding:0 14px;min-height:46px;
-    display:inline-flex;align-items:center;gap:9px;box-shadow:0 2px 0 rgba(255,255,255,.25) inset,0 3px 6px rgba(0,0,0,.35)}
-  .btn:active{transform:translateY(1px)}
-  .btn i{width:9px;height:9px;border-radius:50%;background:#3a1a14;box-shadow:inset 0 0 2px #000}
-  .btn.on i{background:var(--led);box-shadow:0 0 8px var(--led)}
-  .btn.ok i{background:var(--ok);box-shadow:0 0 8px var(--ok)}
-  .btn.err i{background:#ffd23e;box-shadow:0 0 8px #ffd23e}
+  .btn{font:inherit;font-size:10.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#eceef0;
+    background:linear-gradient(180deg,#44474e 0,#26282d 48%,#17181b 52%,#202226 100%);border:1px solid #050506;border-radius:7px;padding:0 13px;min-height:44px;
+    display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 1px 0 rgba(255,255,255,.65),0 3px 5px rgba(0,0,0,.4)}
+  .btn:active{transform:translateY(1px);box-shadow:inset 0 2px 5px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.65)}
+  .btn i{width:9px;height:9px;border-radius:50%;background:#3a1a14;box-shadow:inset 0 1px 2px #000,0 1px 0 rgba(255,255,255,.2)}
+  .btn.on i{background:radial-gradient(circle at 35% 30%,#ffd0c2,var(--led) 55%);box-shadow:0 0 9px var(--led)}
+  .btn.ok i{background:radial-gradient(circle at 35% 30%,#d6ffe6,var(--ok) 55%);box-shadow:0 0 9px var(--ok)}
+  .btn.err i{background:#ffd23e;box-shadow:0 0 9px #ffd23e}
+  .btn.icon{padding:0 12px;font-size:17px;letter-spacing:0}
 
-  .status{font-size:12px;color:var(--ink2);margin:0 0 12px;min-height:16px;letter-spacing:.2px}
+  .status{font-size:12px;color:var(--ink2);margin:0 0 12px;min-height:15px;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+  body.learn .status{color:#8a2a10;font-weight:700}
 
-  /* seções */
-  .sections{display:flex;flex-wrap:wrap;gap:10px}
-  .sec{flex:1 1 auto;border:1.5px solid var(--ink);border-radius:10px;padding:16px 10px 8px;position:relative;background:rgba(255,255,255,.12)}
-  .sec h2{position:absolute;top:-9px;left:12px;margin:0;padding:1px 8px;font-size:10px;letter-spacing:3px;font-weight:800;
-    background:var(--ink);color:#e9eaec;border-radius:4px}
-  .ctrls{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:flex-start;justify-content:center}
+  /* seções gravadas no metal */
+  .sections{display:flex;flex-wrap:wrap;gap:12px 10px}
+  .sec{flex:1 1 auto;border:1.5px solid rgba(20,22,25,.85);border-radius:9px;padding:17px 8px 7px;position:relative;
+    box-shadow:0 1px 0 rgba(255,255,255,.75),inset 0 1px 0 rgba(255,255,255,.35);background:rgba(255,255,255,.07)}
+  .sec h2{position:absolute;top:-9px;left:12px;margin:0;padding:2px 8px 1px;font-size:9.5px;letter-spacing:3px;font-weight:800;
+    background:#17191c;color:#e9eaec;border-radius:3px;box-shadow:0 1px 0 rgba(255,255,255,.7)}
+  .ctrls{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:flex-start;justify-content:center}
 
-  /* knob */
-  .kn{width:76px;text-align:center}
-  .dial{width:70px;height:70px;margin:0 auto;border-radius:50%;position:relative;touch-action:none;cursor:ns-resize;
-    background:repeating-conic-gradient(from -135deg,var(--ink) 0 1.6deg,transparent 1.6deg 27deg)}
-  .dial::before{content:"";position:absolute;inset:7px;border-radius:50%;background:linear-gradient(180deg,var(--panel1),var(--panel2))}
-  .cap{position:absolute;inset:11px;border-radius:50%;
-    background:radial-gradient(circle at 35% 28%,#5a5e66,#17181b 62%);
-    box-shadow:0 5px 9px rgba(0,0,0,.55),inset 0 1px 1px rgba(255,255,255,.35)}
-  .cap::after{content:"";position:absolute;left:50%;top:4px;width:3px;height:17px;margin-left:-1.5px;border-radius:2px;background:#f4f4f4}
-  .kn.big .dial{width:86px;height:86px} .kn.big{width:92px}
-  .kn.big .cap::after{background:var(--amber);height:21px}
-  .kn label{display:block;margin-top:5px;font-size:10px;letter-spacing:1.6px;font-weight:800;color:var(--ink)}
-  .kn output{display:block;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;color:var(--ink2);min-height:14px}
-
-  .kn .cc{display:block;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10px;color:#fff;background:var(--ink);border-radius:4px;padding:0 5px;margin:2px auto 0;width:max-content;visibility:hidden}
+  /* knob: saia preta serrilhada + tampa de alumínio torneado */
+  .kn{width:calc(var(--k) + 8px);text-align:center}
+  .dial{width:var(--k);height:var(--k);margin:0 auto;border-radius:50%;position:relative;touch-action:none;cursor:ns-resize;
+    background:repeating-conic-gradient(from -135deg,#17191c 0 1.5deg,transparent 1.5deg 27deg)}
+  .dial::before{content:"";position:absolute;inset:8%;border-radius:50%;
+    background:radial-gradient(circle,#b9bcc1 60%,#9da1a7);box-shadow:inset 0 2px 4px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.7)}
+  .cap{position:absolute;inset:13%;border-radius:50%;
+    background:repeating-conic-gradient(#0c0d0e 0 5deg,#2b2d31 5deg 10deg);
+    box-shadow:0 7px 10px rgba(0,0,0,.55),0 2px 2px rgba(0,0,0,.5)}
+  .cap::before{content:"";position:absolute;inset:13%;border-radius:50%;
+    background:conic-gradient(from 20deg,#fafbfc,#8e9298 12%,#e6e8ea 25%,#7c8086 38%,#f2f3f4 50%,#8a8e94 63%,#e3e5e7 75%,#787c82 88%,#fafbfc);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.45),inset 0 1px 1px rgba(255,255,255,.9),0 1px 2px rgba(0,0,0,.6)}
+  .cap::after{content:"";position:absolute;left:50%;top:2%;width:8%;height:42%;margin-left:-4%;border-radius:2px;background:#101113;box-shadow:0 0 0 .5px rgba(255,255,255,.35)}
+  .kn.big .dial{width:calc(var(--k)*1.22);height:calc(var(--k)*1.22)} .kn.big{width:calc(var(--k)*1.22 + 8px)}
+  .kn.big .cap::after{background:#d8421c}
+  .kn label{display:block;white-space:nowrap;margin-top:4px;font-size:9.5px;letter-spacing:1.5px;font-weight:800;color:var(--ink);text-shadow:0 1px 0 rgba(255,255,255,.6)}
+  .kn output{display:block;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:var(--ink2);min-height:13px}
+  .kn .cc{display:block;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:9.5px;color:#fff;background:var(--ink);border-radius:4px;padding:0 5px;margin:2px auto 0;width:max-content;visibility:hidden}
   .kn.mapped .cc{visibility:visible}
-  body.learn .kn .dial{box-shadow:0 0 0 3px rgba(255,171,46,.45);cursor:pointer}
+  body.learn .kn .dial{box-shadow:0 0 0 3px rgba(255,171,46,.6);cursor:pointer}
   body.learn .kn.target .dial{box-shadow:0 0 0 4px var(--led),0 0 18px var(--led);animation:blink .7s infinite alternate}
   @keyframes blink{to{box-shadow:0 0 0 4px var(--led),0 0 4px var(--led)}}
-  body.learn .status{color:#8a2a10;font-weight:700}
-  .btn.small{min-height:46px;padding:0 12px}
+
   /* seletores */
   .sel{text-align:center}
-  .sel .cap2{font-size:10px;letter-spacing:1.6px;font-weight:800;margin-top:6px}
-  .seg{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid #0a0a0b;box-shadow:0 3px 6px rgba(0,0,0,.35)}
-  .seg button{font:inherit;border:0;background:linear-gradient(180deg,#3a3d43,#1d1f23);color:#9aa0a9;min-width:50px;min-height:46px;padding:0 8px;
-    border-right:1px solid #0a0a0b;font-weight:800;font-size:16px}
+  .sel .cap2{font-size:9.5px;letter-spacing:1.5px;font-weight:800;margin-top:5px;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+  .seg{display:inline-flex;border-radius:7px;overflow:hidden;border:1px solid #050506;box-shadow:0 1px 0 rgba(255,255,255,.65),0 3px 5px rgba(0,0,0,.4)}
+  .seg button{font:inherit;border:0;background:linear-gradient(180deg,#44474e 0,#26282d 48%,#17181b 52%,#202226 100%);color:#9aa0a9;min-width:46px;min-height:42px;padding:0 7px;
+    border-right:1px solid #050506;font-weight:800;font-size:16px}
   .seg button:last-child{border-right:0}
-  .seg button.on{color:var(--amber);background:linear-gradient(180deg,#22242a,#0f1012);text-shadow:0 0 8px rgba(255,171,46,.7)}
-  .seg svg{width:30px;height:18px;display:block;margin:0 auto;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
-  .octv{font-family:"SF Mono",Menlo,Consolas,monospace;background:#050607;color:var(--oled);min-width:48px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;border-right:1px solid #0a0a0b}
-  .stack{display:flex;flex-direction:column;gap:12px;align-items:center;padding:2px 6px}
+  .seg button.on{color:var(--amber);background:linear-gradient(180deg,#1c1d21,#0c0d0e);text-shadow:0 0 8px rgba(255,171,46,.7);box-shadow:inset 0 2px 5px #000}
+  .seg svg{width:28px;height:17px;display:block;margin:0 auto;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+  .octv{font-family:"SF Mono",Menlo,Consolas,monospace;background:#040506;color:var(--oled);min-width:44px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;border-right:1px solid #050506;text-shadow:0 0 6px rgba(127,233,255,.6)}
+  .stack{display:flex;flex-direction:column;gap:9px;align-items:center;padding:0 6px}
 
-  /* presets */
   .presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-  .presets .btn{flex:1 1 150px;justify-content:center}
+  .presets .btn{flex:1 1 140px;justify-content:center}
 
-  /* teclado */
-  .keysWrap{background:linear-gradient(180deg,#0b0c0d,#191b1e);padding:10px 12px 14px}
-  #kb{position:relative;height:190px;touch-action:none}
+  /* teclado ocupa o resto da tela */
+  .keysWrap{flex:1 1 auto;min-height:150px;display:flex;flex-direction:column;background:linear-gradient(180deg,#050506,#17191c);padding:0 clamp(6px,1vw,14px) clamp(8px,1.2vw,16px)}
+  .felt{height:7px;margin:0 calc(-1*clamp(6px,1vw,14px)) 0;background:linear-gradient(180deg,#5e0f12,#8f1c20 60%,#3c090b);box-shadow:0 2px 4px rgba(0,0,0,.8)}
+  #kb{position:relative;flex:1;min-height:130px;touch-action:none}
   .k{position:absolute;top:0}
-  .k.w{height:100%;background:linear-gradient(180deg,#e9e6dd 0,#fbfaf6 12%,#f1eee6 100%);border:1px solid #6d6a63;border-radius:0 0 6px 6px;box-shadow:inset 0 -8px 8px rgba(0,0,0,.12)}
-  .k.b{height:60%;z-index:2;background:linear-gradient(180deg,#2d2f33,#060607);border-radius:0 0 5px 5px;box-shadow:0 4px 5px rgba(0,0,0,.6),inset 0 -6px 4px rgba(255,255,255,.08)}
-  .k.w.d{background:linear-gradient(180deg,#ffd089,#ffab2e)}
-  .k.b.d{background:linear-gradient(180deg,#b06a05,#6a3e00)}
-  .hint{color:#8d8a84;font-size:12px;text-align:center;margin-top:12px;line-height:1.5}
-  @media (max-width:560px){ .brand b{font-size:24px;letter-spacing:6px} #kb{height:150px} .oled{min-width:0;flex:1} }
+  .k.w{height:100%;background:linear-gradient(180deg,#d9d6cc 0,#f7f5ef 7%,#fdfcf8 60%,#ece9e0 100%);border:1px solid #77736b;border-top:0;border-radius:0 0 6px 6px;
+    box-shadow:inset 0 -10px 10px rgba(0,0,0,.14),inset 2px 0 0 rgba(255,255,255,.9),inset -1px 0 0 rgba(0,0,0,.08)}
+  .k.b{height:61%;z-index:2;background:linear-gradient(90deg,#000 0,#2b2d31 12%,#1a1b1e 50%,#2b2d31 88%,#000 100%);border-radius:0 0 5px 5px;
+    box-shadow:0 5px 6px rgba(0,0,0,.65),inset 0 -9px 5px rgba(255,255,255,.10),inset 0 -1px 0 rgba(255,255,255,.25)}
+  .k.w.d{background:linear-gradient(180deg,#f2b86a,#ffd089 30%,#ffab2e);box-shadow:inset 0 -3px 6px rgba(0,0,0,.2)}
+  .k.b.d{background:linear-gradient(180deg,#b06a05,#6a3e00);box-shadow:0 2px 3px rgba(0,0,0,.65)}
+
+  /* telas baixas (celular deitado, tablet pequeno) */
+  @media (max-height:560px){ :root{--k:clamp(44px,9vh,60px)} .status{display:none} .top{margin-bottom:12px} .presets{margin-top:8px} .btn{min-height:38px} .seg button{min-height:36px} .keysWrap{min-height:120px} #kb{min-height:105px} }
+  /* telas estreitas (em pé) */
+  @media (max-width:700px){ :root{--k:clamp(54px,17vw,74px)} .oled{flex:1;min-width:0} .brand{width:100%} .tools .btn{flex:1;justify-content:center} .tools{width:100%} }
 </style>
 </head>
 <body>
-<div class="stage">
-  <div class="synth">
-    <div class="cheek"></div>
-    <div class="body">
-      <div class="panel">
-        <div class="top">
-          <div class="brand"><b>AURA</b><span>SYNTH BASS</span></div>
-          <div class="oled">
-            <canvas id="scope" width="240" height="92"></canvas>
-            <div class="txt"><b id="oPreset">DEEP SUB BASS</b><span id="oMidi">MIDI: —</span></div>
-          </div>
+<div class="synth">
+  <div class="cheek"></div>
+  <div class="body">
+    <div class="panel">
+      <span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+      <div class="top">
+        <div class="brand"><b>AURA</b><span>SYNTH BASS</span></div>
+        <div class="oled">
+          <canvas id="scope" width="224" height="88"></canvas>
+          <div class="txt"><b id="oPreset">DEEP SUB BASS</b><span id="oMidi">MIDI: —</span><br><span id="lastMsg">&nbsp;</span></div>
+        </div>
+        <div class="tools">
           <button id="start" class="btn"><i></i>Ligar áudio</button>
           <button id="midiBtn" class="btn"><i></i>Conectar MIDI</button>
           <button id="learnBtn" class="btn"><i></i>Mapear knobs</button>
-          <button id="clearBtn" class="btn small" title="Apagar mapeamento">Limpar</button>
-        </div>
-        <p class="status" id="midiInfo">Toque em “Ligar áudio” e depois em “Conectar MIDI”. Gire os knobs arrastando para cima e para baixo.</p>
-
-        <div class="sections">
-          <div class="sec"><h2>OSCILADOR</h2>
-            <div class="ctrls">
-              <div class="stack">
-                <div class="sel">
-                  <div class="seg" id="waveSeg">
-                    <button data-w="square" title="Quadrada"><svg viewBox="0 0 30 18"><path d="M2 14V4h9v10h9V4h8"/></svg></button>
-                    <button data-w="sawtooth" title="Dente de serra"><svg viewBox="0 0 30 18"><path d="M2 14L14 4v10L26 4v10"/></svg></button>
-                    <button data-w="triangle" title="Triângulo"><svg viewBox="0 0 30 18"><path d="M2 14l6.5-10 6.5 10 6.5-10L28 14"/></svg></button>
-                  </div>
-                  <div class="cap2">ONDA</div>
-                </div>
-                <div class="sel">
-                  <div class="seg"><button id="octDn">−</button><span class="octv" id="octV">-1</span><button id="octUp">+</button></div>
-                  <div class="cap2">OITAVA</div>
-                </div>
-              </div>
-              <div id="sec_osc" class="ctrls"></div>
-            </div>
-          </div>
-          <div class="sec"><h2>FILTRO</h2><div id="sec_flt" class="ctrls"></div></div>
-          <div class="sec"><h2>ENVELOPE</h2><div id="sec_env" class="ctrls"></div></div>
-          <div class="sec"><h2>SAÍDA</h2><div id="sec_out" class="ctrls"></div></div>
-        </div>
-
-        <div class="presets">
-          <button class="btn on" data-p="deep"><i></i>Deep Sub Bass</button>
-          <button class="btn" data-p="reggae"><i></i>Reggae Pop</button>
-          <button class="btn" data-p="equalize"><i></i>Equalize</button>
+          <button id="clearBtn" class="btn" title="Apagar mapeamento">Limpar</button>
+          <button id="fsBtn" class="btn icon" title="Tela cheia" aria-label="Tela cheia">⛶</button>
         </div>
       </div>
-      <div class="keysWrap"><div id="kb"></div></div>
+      <p class="status" id="midiInfo">Toque em “Ligar áudio” e depois em “Conectar MIDI”. Gire os knobs arrastando para cima e para baixo; toque duplo volta ao valor do preset.</p>
+
+      <div class="sections">
+        <div class="sec"><h2>OSCILADOR</h2>
+          <div class="ctrls">
+            <div class="stack">
+              <div class="sel">
+                <div class="seg" id="waveSeg">
+                  <button data-w="square" title="Quadrada"><svg viewBox="0 0 30 18"><path d="M2 14V4h9v10h9V4h8"/></svg></button>
+                  <button data-w="sawtooth" title="Dente de serra"><svg viewBox="0 0 30 18"><path d="M2 14L14 4v10L26 4v10"/></svg></button>
+                  <button data-w="triangle" title="Triângulo"><svg viewBox="0 0 30 18"><path d="M2 14l6.5-10 6.5 10 6.5-10L28 14"/></svg></button>
+                </div>
+                <div class="cap2">ONDA</div>
+              </div>
+              <div class="sel">
+                <div class="seg"><button id="octDn">−</button><span class="octv" id="octV">-1</span><button id="octUp">+</button></div>
+                <div class="cap2">OITAVA</div>
+              </div>
+            </div>
+            <div id="sec_osc" class="ctrls"></div>
+          </div>
+        </div>
+        <div class="sec"><h2>FILTRO</h2><div id="sec_flt" class="ctrls"></div></div>
+        <div class="sec"><h2>ENVELOPE</h2><div id="sec_env" class="ctrls"></div></div>
+        <div class="sec"><h2>SAÍDA</h2><div id="sec_out" class="ctrls"></div></div>
+      </div>
+
+      <div class="presets">
+        <button class="btn on" data-p="deep"><i></i>Deep Sub Bass</button>
+        <button class="btn" data-p="reggae"><i></i>Reggae Pop</button>
+        <button class="btn" data-p="equalize"><i></i>Equalize</button>
+      </div>
     </div>
-    <div class="cheek r"></div>
+    <div class="keysWrap"><div class="felt"></div><div id="kb"></div></div>
   </div>
-  <div class="hint">Pitch bend: +2 semitons acima, −12 abaixo · pedal de sustain (CC64) · toque duplo no knob volta ao valor do preset<br><span id="lastMsg"></span></div>
+  <div class="cheek"></div>
 </div>
 
 <script>
@@ -335,7 +367,24 @@
   function setSustain(on){ sustainOn=on; if(!on){ const hs=[...held]; held.clear(); hs.forEach(realOff); } }
   function allOff(){ stack=[]; held.clear(); if(ctx&&gate) releaseEnv(); document.querySelectorAll('.k.d').forEach(k=>k.classList.remove('d')); }
 
-  $('start').addEventListener('click',()=>{ initAudio(); if(ctx.state!=='running') ctx.resume(); });
+  $('start').addEventListener('click',()=>{ initAudio(); if(ctx.state!=='running') ctx.resume(); keepAwake(); });
+
+  // ---------- Tela cheia e tela sempre ligada ----------
+  const root=document.documentElement, fsBtn=$('fsBtn');
+  const fsOn=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const standalone=window.matchMedia('(display-mode: fullscreen),(display-mode: standalone)').matches||navigator.standalone;
+  if(standalone || !(root.requestFullscreen||root.webkitRequestFullscreen)) fsBtn.style.display='none';
+  fsBtn.addEventListener('click',()=>{
+    try{
+      if(fsOn()){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
+      else { const r=(root.requestFullscreen||root.webkitRequestFullscreen).call(root); if(r&&r.catch) r.catch(()=>{}); }
+    }catch(e){}
+  });
+  const fsChange=()=>fsBtn.classList.toggle('on',!!fsOn());
+  document.addEventListener('fullscreenchange',fsChange); document.addEventListener('webkitfullscreenchange',fsChange);
+  let wake=null;
+  async function keepAwake(){ try{ if('wakeLock' in navigator && !wake){ wake=await navigator.wakeLock.request('screen'); wake.addEventListener('release',()=>{wake=null;}); } }catch(e){} }
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden && ctx) keepAwake(); });
 
   // ---------- Osciloscópio ----------
   const cv=$('scope'), g=cv.getContext('2d'); let buf=null;
@@ -381,7 +430,7 @@
   function setMidi(cls,short,long){ mBtn.classList.remove('ok','err'); if(cls) mBtn.classList.add(cls); $('oMidi').textContent='MIDI: '+short; $('midiInfo').textContent=long; }
   function onMsg(ev){
     const d=ev.data, cmd=d[0]&0xF0, d1=d[1], d2=d[2]; count++;
-    $('lastMsg').textContent='Última mensagem MIDI: '+Array.from(d).join(' ')+' ('+count+' recebidas)';
+    $('lastMsg').textContent='IN '+Array.from(d).join(' ');
     if(cmd===0x90 && d2>0) noteOn(d1,d2);
     else if(cmd===0x80 || (cmd===0x90&&d2===0)) noteOff(d1);
     else if(cmd===0xE0){ bend=(((d2<<7)|d1)-8192)/8192; updateDetune(); }
