@@ -2,7 +2,27 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" id="vp" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<script>
+// Em telas pequenas (celular), a página é desenhada no tamanho de um tablet e reduzida para caber, para ter o mesmo layout.
+(function(){
+  var vp=document.getElementById('vp'), NATIVE='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover', last='';
+  function real(){ var a=screen.width, b=screen.height, land=window.matchMedia('(orientation: landscape)').matches; return land ? {w:Math.max(a,b),h:Math.min(a,b),land:true} : {w:Math.min(a,b),h:Math.max(a,b),land:false}; }
+  function set(w){ var c = w ? 'width='+w+', user-scalable=no, viewport-fit=cover' : NATIVE; if(c!==last){ last=c; vp.setAttribute('content',c); } }
+  function fit(){
+    var r=real(), W=0;
+    if(r.land){ if(r.w<960 || r.h<600) W=Math.max(1180, Math.ceil(760*r.w/r.h)); }
+    else if(r.w<960) W=1180;
+    set(W); document.documentElement.classList.toggle('tall', !!W && !r.land);
+    document.documentElement.style.setProperty('--dz', W ? (W/r.w).toFixed(3) : '1');   // janelas e avisos voltam ao tamanho real
+    if(W && r.land) setTimeout(function(){            // desconta as barras do navegador: se sobrar rolagem, reduz mais um pouco
+      var d=document.documentElement; if(d.scrollHeight > window.innerHeight+2){ var W2=Math.ceil(W*d.scrollHeight/window.innerHeight)+4; set(W2); d.style.setProperty('--dz',(W2/r.w).toFixed(3)); }
+    },350);
+  }
+  fit(); window.addEventListener('orientationchange',function(){ last=''; setTimeout(fit,200); });
+  if(screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change',function(){ last=''; setTimeout(fit,200); });
+})();
+</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -188,6 +208,9 @@
   #learnBar .btn{min-height:40px}
 
   body.perf #menuBtn{display:none}
+  /* tela em pé reduzida: mesmo painel do tablet deitado, com o teclado na proporção normal e o resto vazio */
+  .dlg .box, #learnBar{zoom:var(--dz,1)} .dlg .box{max-height:calc(92vh / var(--dz,1))} #pList{max-height:calc(50vh / var(--dz,1))}
+  html.tall body{display:flex;flex-direction:column;justify-content:center} html.tall .synth{min-height:0} html.tall .keysWrap{flex:0 0 auto;height:330px}
 
   @media (max-height:560px){ :root{--k:clamp(34px,6vh,48px)} .top{margin-bottom:14px} .oled{height:56px} .btn{min-height:40px} .seg button{min-height:34px} .keysWrap{min-height:120px} .play{min-height:105px} }
   @media (min-width:960px){ .sections{flex-wrap:nowrap} .sec{min-width:0} }
