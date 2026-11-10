@@ -279,22 +279,46 @@
 <script>
 (function(){
   const $ = id => document.getElementById(id);
-  let ctx=null, osc=null, sub=null, oscG=null, subG=null, f1=null, f2=null, amp=null, master=null, comp=null, an=null, lfo=null, lfoG=null;
+  let ctx=null, osc=null, osc2=null, osc2G=null, noiseG=null, sub=null, oscG=null, subG=null, f1=null, f2=null, amp=null, master=null, comp=null, an=null, lfo=null, lfoG=null;
 
   // ---------- Presets ----------
-  const PKEYS=['oct','wave','lvl','sub','cut','fenv','kt','glide','a','d','s','r','vol'];
+  // parâmetros sem knob no painel (vêm gravados no preset): 2º oscilador, ruído, ressonância, inclinação e envelope próprio do filtro
+  const DEF = {lvl:0.75, sub:0, kt:0, w2:'sawtooth', l2:0, d2:0, o2:0, bt:0, nz:0, res:0, pol:4, fx:0, fa:0.002, fd:0.3, fs:0, fr:0.2};
+  const PKEYS=['oct','wave','lvl','sub','cut','fenv','kt','glide','a','d','s','r','vol','w2','l2','d2','o2','bt','nz','res','pol','fx','fa','fd','fs','fr'];
+  const F = p => Object.assign({factory:true}, DEF, p);
   const FACTORY = [
-    {name:'DEEP SUB BASS', factory:true, oct:-1, wave:'square',   lvl:0.75, sub:0.35, cut:0.41, fenv:0.8, kt:0, glide:0.03,  a:0.008, d:0.295, s:0.59, r:0.19, vol:1.6},
-    {name:'REGGAE POP',    factory:true, oct:-1, wave:'triangle', lvl:0.75, sub:0.45, cut:0.55, fenv:0.6, kt:0, glide:0.015, a:0.004, d:0.35,  s:0.55, r:0.12, vol:1.8},
-    {name:'EQUALIZE',      factory:true, oct:-1, wave:'sawtooth', lvl:0.75, sub:0.30, cut:0.50, fenv:1.2, kt:0, glide:0.0,   a:0.003, d:0.22,  s:0.45, r:0.08, vol:1.4},
-    // importados do Minimoog Model D (iPad): só o oscilador 1 ligado, onda quadrada em 32', filtro com acompanhamento de teclado em 2/3
-    {name:'MOOG-DIX',          factory:true, oct:-2, wave:'square', lvl:1.0, sub:0, cut:0.0735, fenv:0.94, kt:0.667, glide:0, a:0.004, d:0.25, s:0.59, r:0.25, vol:1.35},
-    {name:'CHURCH SYNTH BASS', factory:true, oct:-2, wave:'square', lvl:1.0, sub:0, cut:0.0560, fenv:1.04, kt:0.667, glide:0, a:0.002, d:0.25, s:0.60, r:0.25, vol:1.65}
+    F({name:'DEEP SUB BASS', oct:-1, wave:'square',   lvl:0.75, sub:0.35, cut:0.41, fenv:0.8, kt:0, glide:0.03,  a:0.008, d:0.295, s:0.59, r:0.19, vol:1.6}),
+    F({name:'REGGAE POP',    oct:-1, wave:'triangle', lvl:0.75, sub:0.45, cut:0.55, fenv:0.6, kt:0, glide:0.015, a:0.004, d:0.35,  s:0.55, r:0.12, vol:1.8}),
+    F({name:'EQUALIZE',      oct:-1, wave:'sawtooth', lvl:0.75, sub:0.30, cut:0.50, fenv:1.2, kt:0, glide:0.0,   a:0.003, d:0.22,  s:0.45, r:0.08, vol:1.4}),
+    // importados do Minimoog Model D (iPad)
+    F({name:'MOOG-DIX',          oct:-2, wave:'square', lvl:1.0, sub:0, cut:0.0735, fenv:0.94, kt:0.667, glide:0, a:0.004, d:0.25, s:0.59, r:0.25, vol:1.35}),
+    F({name:'CHURCH SYNTH BASS', oct:-2, wave:'square', lvl:1.0, sub:0, cut:0.0560, fenv:1.04, kt:0.667, glide:0, a:0.002, d:0.25, s:0.60, r:0.25, vol:1.65}),
+    // importados de presets do Moog Sub Phatty (.syx), convertidos por aproximação
+    F({name:"CRIMINAL", oct:-1, wave:"sawtooth", lvl:0.65, sub:0, cut:0.471, fenv:2.91, kt:0.5, glide:0, a:0.002, d:0.741, s:0.47, r:0.045, vol:1.21, w2:"square", l2:0.51, d2:0, o2:0, bt:0.0, nz:0.0, res:0.11, pol:4, fx:1, fa:0.002, fd:0.443, fs:0.0, fr:0.516}),
+    F({name:"DSTYGE", oct:-1, wave:"square", lvl:0.65, sub:0, cut:0.34, fenv:2.59, kt:0.45, glide:0.12, a:0.002, d:1.677, s:1.0, r:0.064, vol:1.49, w2:"sawtooth", l2:0.0, d2:0.02, o2:0, bt:0.06, nz:0.0, res:0.2, pol:4, fx:1, fa:0.002, fd:0.775, fs:0.18, fr:1.278}),
+    F({name:"DRUM BASS", oct:-1, wave:"square", lvl:0.66, sub:0, cut:0.433, fenv:1.78, kt:0.29, glide:0, a:0.002, d:0.743, s:1.0, r:0.041, vol:1.2, w2:"square", l2:0.64, d2:0, o2:0, bt:-0.64, nz:0.0, res:0.0, pol:4, fx:1, fa:0.002, fd:0.037, fs:0.0, fr:0.659}),
+    F({name:"FUNKYDETUNE", oct:-1, wave:"square", lvl:0.73, sub:0, cut:0.406, fenv:3.59, kt:0.71, glide:0, a:0.002, d:1.507, s:1.0, r:0.093, vol:1.15, w2:"square", l2:0.46, d2:0.28, o2:1, bt:0.0, nz:0.0, res:0.47, pol:4, fx:1, fa:0.002, fd:0.646, fs:0.0, fr:0.063}),
+    F({name:"HELP ME", oct:-1, wave:"square", lvl:0.74, sub:0, cut:0.302, fenv:0, kt:0.33, glide:0, a:0.002, d:1.672, s:1.0, r:0.071, vol:1.34, w2:"square", l2:0.39, d2:0.0, o2:1, bt:0.0, nz:0.0, res:0.23, pol:4, fx:1, fa:0.002, fd:0.406, fs:0.0, fr:0.226}),
+    F({name:"HIDEAWAY", oct:-1, wave:"square", lvl:0.69, sub:0, cut:0.101, fenv:3.59, kt:0.27, glide:0, a:0.002, d:1.276, s:1.0, r:0.604, vol:1.29, w2:"sawtooth", l2:0.49, d2:0, o2:0, bt:-1.22, nz:0.0, res:0.0, pol:4, fx:1, fa:0.002, fd:0.67, fs:0.0, fr:0.687}),
+    F({name:"OMEN", oct:0, wave:"square", lvl:0.0, sub:0, cut:0.365, fenv:3.33, kt:1.0, glide:0, a:0.013, d:0.74, s:1.0, r:0.544, vol:1.34, w2:"square", l2:0.5, d2:0.18, o2:-1, bt:0.0, nz:0.78, res:0.28, pol:4, fx:1, fa:0.035, fd:0.643, fs:0.0, fr:0.358}),
+    F({name:"P-NEL", oct:-2, wave:"sawtooth", lvl:0.88, sub:0, cut:0.312, fenv:1.2, kt:0.37, glide:0.074, a:0.003, d:2, s:1.0, r:0.041, vol:1.37, w2:"sawtooth", l2:0.0, d2:0.0, o2:1, bt:0.25, nz:0.0, res:0.0, pol:4, fx:1, fa:0.002, fd:0.849, fs:0.17, fr:0.058}),
+    F({name:"PALM TREES", oct:-1, wave:"square", lvl:0.6, sub:0, cut:0, fenv:4, kt:0.31, glide:0, a:0.015, d:1.254, s:0.62, r:0.206, vol:1.35, w2:"sawtooth", l2:0.48, d2:0.0, o2:1, bt:0.0, nz:0.0, res:0.42, pol:4, fx:1, fa:0.034, fd:0.231, fs:0.46, fr:0.254}),
+    F({name:"PRAY4ME", oct:-1, wave:"sawtooth", lvl:0.64, sub:0, cut:0.489, fenv:2.97, kt:0.29, glide:0, a:0.002, d:2, s:0.54, r:2, vol:1.49, w2:"square", l2:0.55, d2:0, o2:0, bt:0.0, nz:0.0, res:0.0, pol:2, fx:1, fa:0.002, fd:2, fs:0.0, fr:2}),
+    F({name:"SOFT808", oct:-1, wave:"square", lvl:0.68, sub:0, cut:0.324, fenv:0, kt:1, glide:0, a:0.003, d:0.568, s:1.0, r:0.819, vol:1.37, w2:"sawtooth", l2:0.0, d2:0.0, o2:0, bt:0.0, nz:0.0, res:0.53, pol:4, fx:1, fa:0.002, fd:0.026, fs:0.0, fr:0.02}),
+    F({name:"SQAURE BOUNCE", oct:-1, wave:"square", lvl:0.79, sub:0, cut:0, fenv:3.18, kt:0.29, glide:0, a:0.002, d:1.86, s:0.0, r:1.783, vol:1.45, w2:"square", l2:0.0, d2:0.11, o2:0, bt:0.04, nz:0.0, res:0.0, pol:4, fx:1, fa:0.002, fd:1.57, fs:0.0, fr:1.691}),
+    F({name:"SQUARE 808", oct:-1, wave:"square", lvl:0.71, sub:0, cut:0.609, fenv:1.52, kt:0.31, glide:0, a:0.002, d:2, s:1.0, r:0.027, vol:1.34, w2:"triangle", l2:0.51, d2:0.46, o2:0, bt:0.0, nz:0.0, res:0.0, pol:2, fx:1, fa:0.002, fd:0.044, fs:0.0, fr:0.111}),
+    F({name:"SQUARE SUB", oct:-1, wave:"square", lvl:0.53, sub:0, cut:0.366, fenv:0, kt:0.31, glide:0.115, a:0.015, d:2, s:1.0, r:0.042, vol:1.42, w2:"square", l2:0.52, d2:0.19, o2:0, bt:0.0, nz:0.0, res:0.0, pol:4, fx:1, fa:0.002, fd:0.051, fs:0.0, fr:1.846}),
+    F({name:"SUB SWEEPER", oct:-1, wave:"square", lvl:0.0, sub:1, cut:0.45, fenv:0, kt:0, glide:0.165, a:0.107, d:1.68, s:1.0, r:2, vol:1.54, w2:"square", l2:0.0, d2:0.0, o2:1, bt:0.06, nz:0.0, res:0, pol:4, fx:0, fa:0.002, fd:2, fs:0.0, fr:2}),
+    F({name:"TAURUS", oct:-1, wave:"sawtooth", lvl:0.66, sub:0, cut:0.466, fenv:3.58, kt:0.35, glide:0, a:0.059, d:0.096, s:1.0, r:2, vol:1.28, w2:"sawtooth", l2:0.46, d2:0.0, o2:0, bt:0.46, nz:0.0, res:0.0, pol:4, fx:1, fa:0.002, fd:2, fs:0.0, fr:2}),
+    F({name:"THE TIME", oct:-1, wave:"sawtooth", lvl:0.65, sub:0, cut:0.516, fenv:1.27, kt:0.5, glide:0, a:0.002, d:0.741, s:1.0, r:0.045, vol:1.3, w2:"square", l2:0.38, d2:0.04, o2:0, bt:0.0, nz:0.0, res:0.0, pol:4, fx:1, fa:0.002, fd:0.901, fs:0.0, fr:0.516}),
+    F({name:"UNO BASS", oct:-1, wave:"square", lvl:0.69, sub:0, cut:0.238, fenv:2.28, kt:0.27, glide:0, a:0.002, d:0.74, s:1.0, r:1.339, vol:1.35, w2:"square", l2:0.52, d2:0, o2:0, bt:0.0, nz:0.0, res:0.0, pol:4, fx:1, fa:0.002, fd:0.421, fs:0.0, fr:0.661}),
+    F({name:"WATCH YO STEP", oct:-1, wave:"square", lvl:0.71, sub:0, cut:0.246, fenv:2.16, kt:0.35, glide:0, a:0.002, d:1.672, s:1.0, r:0.555, vol:1.45, w2:"square", l2:0.0, d2:0.14, o2:0, bt:0.0, nz:0.0, res:0.37, pol:4, fx:1, fa:0.043, fd:0.783, fs:0.24, fr:0.586}),
+    F({name:"WORK IT OUT", oct:-1, wave:"sawtooth", lvl:0.56, sub:0, cut:0.421, fenv:2.95, kt:0.33, glide:0.122, a:0.002, d:1.674, s:1.0, r:0.031, vol:1.63, w2:"triangle", l2:0.0, d2:0.0, o2:-1, bt:0.0, nz:0.0, res:0.11, pol:4, fx:1, fa:0.002, fd:0.505, fs:0.0, fr:0.177})
   ];
   const UKEY='aura_user_presets_v1', LKEY='aura_last_preset_v1';
   let USER=[];
   try{ const u=JSON.parse(localStorage.getItem(UKEY)||'[]');
-    if(Array.isArray(u)) USER=u.filter(p=>p&&typeof p.name==='string').map(p=>{ if(!('lvl' in p)) p.lvl=0.75; if(!('kt' in p)) p.kt=0; return p; }).filter(p=>PKEYS.every(k=>k in p)); }catch(e){}
+    if(Array.isArray(u)) USER=u.filter(p=>p&&typeof p.name==='string').map(p=>Object.assign({}, DEF, p)).filter(p=>PKEYS.every(k=>k in p)); }catch(e){}
   let PRESETS = FACTORY.concat(USER);
   let curPreset = 0, dirty = false;
   try{ const l=parseInt(localStorage.getItem(LKEY)); if(l>=0&&l<PRESETS.length) curPreset=l; }catch(e){}
@@ -463,6 +487,11 @@
     ctx = new AC({latencyHint:'interactive'});
     osc = ctx.createOscillator(); sub = ctx.createOscillator(); sub.type='sine';
     oscG = ctx.createGain(); subG = ctx.createGain();
+    osc2 = ctx.createOscillator(); osc2G = ctx.createGain(); osc2G.gain.value = 0;
+    const nb = ctx.createBuffer(1, ctx.sampleRate*2, ctx.sampleRate), nd = nb.getChannelData(0);
+    for(let i=0;i<nd.length;i++) nd[i] = Math.random()*2-1;
+    const noise = ctx.createBufferSource(); noise.buffer = nb; noise.loop = true; noiseG = ctx.createGain(); noiseG.gain.value = 0;
+    noise.connect(noiseG); noise.start();
     f1 = ctx.createBiquadFilter(); f2 = ctx.createBiquadFilter();
     f1.type = f2.type = 'lowpass'; f1.Q.value = 0.707; f2.Q.value = 0.707; // 2 × 12 dB = 24 dB/oit
     amp = ctx.createGain(); amp.gain.value = 0;
@@ -470,8 +499,8 @@
     comp.threshold.value=-14; comp.knee.value=10; comp.ratio.value=5; comp.attack.value=0.004; comp.release.value=0.15;
     master = ctx.createGain(); an = ctx.createAnalyser(); an.fftSize = 1024;
     lfo = ctx.createOscillator(); lfo.frequency.value = 5.5; lfoG = ctx.createGain(); lfoG.gain.value = 0;
-    lfo.connect(lfoG); lfoG.connect(osc.detune); lfoG.connect(sub.detune);
-    osc.connect(oscG); sub.connect(subG); oscG.connect(f1); subG.connect(f1);
+    lfo.connect(lfoG); lfoG.connect(osc.detune); lfoG.connect(sub.detune); lfoG.connect(osc2.detune);
+    osc.connect(oscG); sub.connect(subG); oscG.connect(f1); subG.connect(f1); osc2.connect(osc2G); osc2G.connect(f1); noiseG.connect(f1);
     // saída: o medidor lê antes do limitador; o limitador satura suave em vez de estourar
     const pre = ctx.createGain(); pre.gain.value = 1/3;
     const sh = ctx.createWaveShaper(), N = 4096, curve = new Float32Array(N);
@@ -479,45 +508,51 @@
     sh.curve = curve; sh.oversample = '2x';
     f1.connect(f2); f2.connect(amp); amp.connect(comp); comp.connect(master); master.connect(an);
     master.connect(pre); pre.connect(sh); sh.connect(ctx.destination); window.__auraOut = sh;
-    osc.frequency.value = sub.frequency.value = 55;
+    osc.frequency.value = sub.frequency.value = osc2.frequency.value = 55;
     f1.frequency.value = f2.frequency.value = baseCut();
-    osc.start(); sub.start(); lfo.start();
+    osc.start(); sub.start(); osc2.start(); lfo.start();
     applyAll(); renderOled();
   }
   function applyAll(){
     if(!ctx) return;
     osc.type = P.wave; oscG.gain.value = P.lvl * 0.6; subG.gain.value = P.sub * 0.6; master.gain.value = P.vol;
-    if(!gate){ f1.frequency.value = f2.frequency.value = baseCut(); }
+    osc2.type = P.w2; osc2G.gain.value = P.l2 * 0.6; noiseG.gain.value = P.nz * 0.35;
+    f1.Q.value = 0.707 + P.res*P.res*12; f2.Q.value = 0.707 + P.res*1.5;
+    if(P.pol<=2){ f2.frequency.cancelScheduledValues(ctx.currentTime); f2.frequency.value = 20000; f2.Q.value = 0.5; }
+    if(!gate){ FL().forEach(f=>{ f.frequency.value = baseCut(); }); }
     updateDetune();
   }
-  function updateDetune(){ if(!ctx) return; const c = bend>=0 ? bend*200 : bend*1200; osc.detune.value=c; sub.detune.value=c; lfoG.gain.value = mod*60; }
+  function updateDetune(){ if(!ctx) return; const c = bend>=0 ? bend*200 : bend*1200; osc.detune.value=c; sub.detune.value=c; osc2.detune.value=c; lfoG.gain.value = mod*60; }
   const noteFreq = n => mtof(n + P.oct*12);
   let lastNote = 36;
+  const FL = () => P.pol<=2 ? [f1] : [f1,f2];                       // filtros que o envelope move
+  const FE = () => P.fx ? {a:Math.max(P.fa,0.002), d:P.fd, s:P.fs, r:P.fr} : {a:Math.max(P.a,0.002), d:P.d, s:P.s, r:P.r};
   // corte base do filtro, com acompanhamento de teclado (referência: Dó 1 soando)
   const baseCut = () => Math.min(cutHz(P.cut) * Math.pow(2, (P.kt||0) * ((lastNote + P.oct*12) - 24) / 12), 20000);
   function holdParam(p,t){ if(p.cancelAndHoldAtTime){ p.cancelAndHoldAtTime(t); } else { const v=p.value; p.cancelScheduledValues(t); p.setValueAtTime(v,t); } }
   function triggerEnv(vel){
     const t = ctx.currentTime, peak = 0.45 + 0.55*(vel/127), att=Math.max(P.a,0.002);
     holdParam(amp.gain,t); amp.gain.linearRampToValueAtTime(peak, t+att); amp.gain.setTargetAtTime(peak*P.s, t+att, P.d/3);
-    const base = baseCut(), top = Math.min(base*Math.pow(2,P.fenv),20000), susF = Math.min(base*Math.pow(2,P.fenv*P.s),20000);
-    [f1,f2].forEach(f=>{ holdParam(f.frequency,t); f.frequency.setValueAtTime(base,t); f.frequency.linearRampToValueAtTime(top,t+att); f.frequency.setTargetAtTime(susF,t+att,P.d/3); });
+    const e = FE(), base = baseCut(), top = Math.min(base*Math.pow(2,P.fenv),20000), susF = Math.min(base*Math.pow(2,P.fenv*e.s),20000);
+    FL().forEach(f=>{ holdParam(f.frequency,t); f.frequency.setValueAtTime(base,t); f.frequency.linearRampToValueAtTime(top,t+e.a); f.frequency.setTargetAtTime(susF,t+e.a,e.d/3); });
     gate = true;
   }
   function releaseEnv(){
     const t = ctx.currentTime, base = baseCut();
     holdParam(amp.gain,t); amp.gain.setTargetAtTime(0,t,P.r/3);
-    [f1,f2].forEach(f=>{ holdParam(f.frequency,t); f.frequency.setTargetAtTime(base,t,P.r/3); });
+    FL().forEach(f=>{ holdParam(f.frequency,t); f.frequency.setTargetAtTime(base,t,FE().r/3); });
     gate = false;
   }
   function setPitch(n, immediate){
     const t = ctx.currentTime, fr = noteFreq(n);
-    [osc,sub].forEach(o=>{ o.frequency.cancelScheduledValues(t);
-      if(immediate || P.glide<0.002) o.frequency.setValueAtTime(fr,t); else o.frequency.setTargetAtTime(fr,t,P.glide/3); });
+    const f2r = fr * Math.pow(2, P.o2 + P.d2/12) + P.bt;
+    [[osc,fr],[sub,fr],[osc2,f2r]].forEach(([o,f])=>{ o.frequency.cancelScheduledValues(t);
+      if(immediate || P.glide<0.002) o.frequency.setValueAtTime(f,t); else o.frequency.setTargetAtTime(f,t,P.glide/3); });
   }
   function trackFilter(){   // nota ligada: o filtro acompanha a nova altura sem redisparar o envelope
     if(!(P.kt>0)) return;
-    const t = ctx.currentTime, susF = Math.min(baseCut()*Math.pow(2,P.fenv*P.s),20000);
-    [f1,f2].forEach(f=>{ holdParam(f.frequency,t); f.frequency.setTargetAtTime(susF,t,0.03); });
+    const t = ctx.currentTime, susF = Math.min(baseCut()*Math.pow(2,P.fenv*FE().s),20000);
+    FL().forEach(f=>{ holdParam(f.frequency,t); f.frequency.setTargetAtTime(susF,t,0.03); });
   }
   function retune(){ if(ctx && stack.length) setPitch(stack[stack.length-1], true); }
   function noteOn(n, vel){
