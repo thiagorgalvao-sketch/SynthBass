@@ -55,10 +55,11 @@
   .brand b{font-size:clamp(22px,3vw,34px);letter-spacing:.3em;font-weight:800;color:#1b1d20;text-shadow:0 1px 0 rgba(255,255,255,.75)}
   .brand span{font-size:clamp(9px,1.1vw,12px);letter-spacing:.42em;font-weight:700;color:var(--ink2);text-shadow:0 1px 0 rgba(255,255,255,.7)}
   .oled{background:#040506;border-radius:7px;padding:7px 10px;border:1px solid #000;
-    box-shadow:0 1px 0 rgba(255,255,255,.8),0 0 0 3px #26282c,inset 0 0 14px #000;display:flex;align-items:center;gap:10px;min-width:240px}
-  .oled canvas{display:block;width:112px;height:44px}
-  .oled .txt{font-family:"SF Mono",Menlo,Consolas,monospace;color:var(--oled);font-size:10px;line-height:1.45;letter-spacing:.5px;text-shadow:0 0 6px rgba(127,233,255,.6);white-space:nowrap;overflow:hidden}
-  .oled .txt b{display:block;font-size:13px}
+    box-shadow:0 1px 0 rgba(255,255,255,.8),0 0 0 3px #26282c,inset 0 0 14px #000;display:flex;align-items:center;gap:10px;width:336px;flex:0 0 auto;overflow:hidden}
+  .oled canvas{display:block;width:112px;height:44px;flex:0 0 112px}
+  .oled .txt{font-family:"SF Mono",Menlo,Consolas,monospace;color:var(--oled);font-size:10px;line-height:1.45;letter-spacing:.5px;text-shadow:0 0 6px rgba(127,233,255,.6);white-space:nowrap;overflow:hidden;flex:1 1 0;min-width:0}
+  .oled .txt b,.oled .txt span{display:block;height:15px;overflow:hidden;text-overflow:ellipsis}
+  .oled .txt b{font-size:13px;height:18px}
   .tools{display:flex;flex-wrap:wrap;gap:8px}
 
   .btn{font:inherit;font-size:10.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#eceef0;
@@ -72,7 +73,7 @@
   .btn.err i{background:#ffd23e;box-shadow:0 0 9px #ffd23e}
   .btn.icon{padding:0 12px;font-size:17px;letter-spacing:0}
 
-  .status{font-size:12px;color:var(--ink2);margin:0 0 12px;min-height:15px;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+  .status{font-size:12px;line-height:16px;height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink2);margin:0 0 12px;text-shadow:0 1px 0 rgba(255,255,255,.6)}
   body.learn .status{color:#8a2a10;font-weight:700}
 
   /* seções gravadas no metal */
@@ -98,9 +99,9 @@
   .cap::after{content:"";position:absolute;left:50%;top:2%;width:8%;height:42%;margin-left:-4%;border-radius:2px;background:#101113;box-shadow:0 0 0 .5px rgba(255,255,255,.35)}
   .kn.big .dial{width:calc(var(--k)*1.22);height:calc(var(--k)*1.22)} .kn.big{width:calc(var(--k)*1.22 + 8px)}
   .kn.big .cap::after{background:#d8421c}
-  .kn label{display:block;white-space:nowrap;margin-top:4px;font-size:9.5px;letter-spacing:1.5px;font-weight:800;color:var(--ink);text-shadow:0 1px 0 rgba(255,255,255,.6)}
-  .kn output{display:block;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:var(--ink2);min-height:13px}
-  .kn .cc{display:block;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:9.5px;color:#fff;background:var(--ink);border-radius:4px;padding:0 5px;margin:2px auto 0;width:max-content;visibility:hidden}
+  .kn label{display:block;white-space:nowrap;overflow:hidden;margin-top:4px;font-size:9.5px;letter-spacing:1.5px;font-weight:800;color:var(--ink);text-shadow:0 1px 0 rgba(255,255,255,.6)}
+  .kn output{display:block;height:13px;white-space:nowrap;overflow:hidden;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:var(--ink2);min-height:13px}
+  .kn .cc{display:block;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:9.5px;color:#fff;background:var(--ink);border-radius:4px;padding:0 5px;margin:2px auto 0;width:46px;height:13px;line-height:13px;overflow:hidden;visibility:hidden}
   .kn.mapped .cc{visibility:visible}
   body.learn .kn .dial{box-shadow:0 0 0 3px rgba(255,171,46,.6);cursor:pointer}
   body.learn .kn.target .dial{box-shadow:0 0 0 4px var(--led),0 0 18px var(--led);animation:blink .7s infinite alternate}
@@ -145,7 +146,7 @@
   /* telas baixas (celular deitado, tablet pequeno) */
   @media (max-height:560px){ :root{--k:clamp(44px,9vh,60px)} .status{display:none} .top{margin-bottom:12px} .btn{min-height:38px} .seg button{min-height:36px} .keysWrap{min-height:120px} #kb{min-height:105px} }
   /* telas estreitas (em pé) */
-  @media (max-width:700px){ :root{--k:clamp(54px,17vw,74px)} .oled{flex:1;min-width:0} .brand{width:100%} .tools .btn{flex:1;justify-content:center} .tools{width:100%} }
+  @media (max-width:700px){ :root{--k:clamp(54px,17vw,74px)} .oled{flex:1 1 0;width:auto;min-width:0} .pnav{width:100%} .brand{width:100%} .tools .btn{flex:1;justify-content:center} .tools{width:100%} }
 </style>
 </head>
 <body>
@@ -160,7 +161,7 @@
         <button id="pPrev" class="btn" aria-label="Preset anterior">◀</button>
         <div class="oled">
           <canvas id="scope" width="224" height="88"></canvas>
-          <div class="txt"><b id="oPreset">01 DEEP SUB BASS</b><span id="oMidi">MIDI: —</span><br><span id="lastMsg">&nbsp;</span></div>
+          <div class="txt"><b id="oPreset">01 DEEP SUB BASS</b><span id="oMidi">MIDI: —</span><span id="lastMsg">&nbsp;</span></div>
         </div>
         <button id="pNext" class="btn" aria-label="Próximo preset">▶</button>
         </div>
@@ -294,15 +295,15 @@
   }
   function setLearn(on){
     learnMode=on; document.body.classList.toggle('learn',on); $('learnBtn').classList.toggle('on',on);
-    $('learnBtn').lastChild.textContent=on?'Concluir':'Mapear knobs'; setTarget(null);
-    $('midiInfo').textContent=on?'Modo mapeamento: toque em um knob da tela e depois gire o knob do SMK-25. Repita para cada knob e toque em “Concluir”.'
+    setTarget(null);
+    $('midiInfo').textContent=on?'Modo mapeamento: toque em um knob da tela e depois gire o knob do SMK-25. Para terminar, toque de novo em “Mapear knobs”.'
       :'Mapeamento salvo neste aparelho. '+Object.keys(ccMap).length+' knob(s) mapeado(s).';
   }
   function learnCC(cc){
     if(RESERVED.includes(cc)) return;
     Object.keys(ccMap).forEach(c=>{ if(ccMap[c]===learnTarget) delete ccMap[c]; });
     ccMap[cc]=learnTarget; saveMap(); drawMap();
-    $('midiInfo').textContent=KN[learnTarget].label+' ficou no CC '+cc+'. Toque no próximo knob da tela ou em “Concluir”.';
+    $('midiInfo').textContent=KN[learnTarget].label+' ficou no CC '+cc+'. Toque no próximo knob ou em “Mapear knobs” para terminar.';
     learnTarget=null; KNOBS.forEach(k=>k.wrap.classList.remove('target'));
   }
   function applyCC(cc,val){
@@ -392,7 +393,7 @@
     f1.frequency.value = f2.frequency.value = cutHz(P.cut);
     osc.start(); sub.start();
     applyAll();
-    $('start').classList.add('on'); $('start').lastChild.textContent='Áudio ligado';
+    $('start').classList.add('on');
   }
   function applyAll(){
     if(!ctx) return;
