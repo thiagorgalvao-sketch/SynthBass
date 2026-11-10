@@ -143,6 +143,14 @@
   .k.w.d{background:linear-gradient(180deg,#f2b86a,#ffd089 30%,#ffab2e);box-shadow:inset 0 -3px 6px rgba(0,0,0,.2)}
   .k.b.d{background:linear-gradient(180deg,#b06a05,#6a3e00);box-shadow:0 2px 3px rgba(0,0,0,.65)}
 
+  /* modo tocar (expandido): só marca, visor, troca de preset e teclado */
+  body.perf .tools .btn:not(#fsBtn), body.perf .status, body.perf .sections{display:none}
+  body.perf .top{margin-bottom:0;flex-wrap:nowrap}
+  body.perf .tools{width:auto;flex:0 0 auto}
+  body.perf .panel{padding-top:calc(var(--pad) + 2px);padding-bottom:calc(var(--pad) + 4px)}
+  body.perf .brand{width:auto;min-width:0;overflow:hidden}
+  body.perf .pnav{width:auto;flex:0 1 auto;min-width:0}
+  @media (max-width:700px){ body.perf .brand span{display:none} body.perf .oled canvas{display:none} }
   /* telas baixas (celular deitado, tablet pequeno) */
   @media (max-height:560px){ :root{--k:clamp(44px,9vh,60px)} .status{display:none} .top{margin-bottom:12px} .btn{min-height:38px} .seg button{min-height:36px} .keysWrap{min-height:120px} #kb{min-height:105px} }
   /* telas estreitas (em pé) */
@@ -171,7 +179,7 @@
           <button id="saveBtn" class="btn">Salvar preset</button>
           <button id="learnBtn" class="btn"><i></i>Mapear knobs</button>
           <button id="clearBtn" class="btn" title="Apagar mapeamento">Limpar</button>
-          <button id="fsBtn" class="btn icon" title="Tela cheia" aria-label="Tela cheia">⛶</button>
+          <button id="fsBtn" class="btn icon" title="Modo tocar (tela cheia)" aria-label="Modo tocar">⛶</button>
         </div>
       </div>
       <p class="status" id="midiInfo">Toque em “Ligar áudio” e depois em “Conectar MIDI”. Gire os knobs arrastando para cima e para baixo; toque duplo volta ao valor do preset.</p>
@@ -439,15 +447,23 @@
   // ---------- Tela cheia e tela sempre ligada ----------
   const root=document.documentElement, fsBtn=$('fsBtn');
   const fsOn=()=>document.fullscreenElement||document.webkitFullscreenElement;
-  const standalone=window.matchMedia('(display-mode: fullscreen),(display-mode: standalone)').matches||navigator.standalone;
-  if(standalone || !(root.requestFullscreen||root.webkitRequestFullscreen)) fsBtn.style.display='none';
+  const canFs=!!(root.requestFullscreen||root.webkitRequestFullscreen);
+  let wasFs=false;
+  function setPerf(on){
+    if(on && learnMode) setLearn(false);
+    document.body.classList.toggle('perf',on); fsBtn.classList.toggle('on',on);
+    fsBtn.title=on?'Voltar aos controles':'Modo tocar (tela cheia)';
+  }
   fsBtn.addEventListener('click',()=>{
+    const on=!document.body.classList.contains('perf'); setPerf(on);
     try{
-      if(fsOn()){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
-      else { const r=(root.requestFullscreen||root.webkitRequestFullscreen).call(root); if(r&&r.catch) r.catch(()=>{}); }
+      if(on){
+        initAudio(); if(ctx.state!=='running') ctx.resume(); keepAwake(); if(!midi) connectMidi();
+        if(canFs && !fsOn()){ const r=(root.requestFullscreen||root.webkitRequestFullscreen).call(root); if(r&&r.catch) r.catch(()=>{}); }
+      } else if(fsOn()){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
     }catch(e){}
   });
-  const fsChange=()=>fsBtn.classList.toggle('on',!!fsOn());
+  const fsChange=()=>{ if(fsOn()) wasFs=true; else if(wasFs){ wasFs=false; setPerf(false); } };
   document.addEventListener('fullscreenchange',fsChange); document.addEventListener('webkitfullscreenchange',fsChange);
   let wake=null;
   async function keepAwake(){ try{ if('wakeLock' in navigator && !wake){ wake=await navigator.wakeLock.request('screen'); wake.addEventListener('release',()=>{wake=null;}); } }catch(e){} }
@@ -513,7 +529,7 @@
     if(names.length) setMidi('ok', names[0].slice(0,14).toUpperCase(), 'Conectado: '+names.join(' · '));
     else setMidi('err','SEM DISPOSITIVO','MIDI ativo, mas nenhum dispositivo encontrado. Ligue o SMK-25 e pareie o Bluetooth com o tablet.');
   }
-  mBtn.addEventListener('click',async()=>{
+  async function connectMidi(){
     if(!ctx) initAudio();
     if(!navigator.requestMIDIAccess){
       setMidi('err','SEM SUPORTE','Este navegador não suporta Web MIDI. No Samsung use Chrome ou Samsung Internet. No iPad o Safari e o Chrome não suportam; use o teclado de tela.');
@@ -521,7 +537,8 @@
     }
     try{ midi=await navigator.requestMIDIAccess({sysex:false}); midi.onstatechange=refreshInputs; refreshInputs(); }
     catch(err){ setMidi('err','BLOQUEADO','Permissão de MIDI negada: '+(err&&err.message?err.message:err)); }
-  });
+  }
+  mBtn.addEventListener('click',connectMidi);
 
   document.addEventListener('visibilitychange',()=>{ if(document.hidden) allOff(); });
 })();
