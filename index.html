@@ -199,6 +199,7 @@
   .dlg .btn.cur{color:var(--amber)}
   .dlg .btn.row{justify-content:flex-start;font-size:12px}
   .dlg .btn.row em{font-style:normal;margin-left:auto;font-size:9px;opacity:.6}
+  #mVelSt{opacity:1;color:var(--amber);font-size:10px}
   .dlg p{font-size:12px;line-height:1.5;color:var(--ink2);margin:10px 0 0}
 
   /* barra do modo mapeamento (flutua, não desloca nada) */
@@ -318,6 +319,7 @@
   <button id="mExport" class="btn row">Exportar meus presets e ajustes</button>
   <button id="mLearn" class="btn row">Mapear knobs e botões do controlador</button>
   <button id="mClear" class="btn row">Limpar mapeamento</button>
+  <button id="mVel" class="btn row">Sensibilidade ao toque<em id="mVelSt">—</em></button>
   <button id="mMidi" class="btn row">Conectar MIDI<em id="mMidiSt">—</em></button>
   <button class="btn" data-close>Fechar</button>
   <p>Gire os knobs arrastando para cima e para baixo. Toque duplo volta ao valor salvo, marcado pelo ponto vermelho. Toque no visor para abrir a lista de presets. Pitch bend: +2 semitons acima, −12 abaixo. A roda MOD (CC1) adiciona vibrato. O cadeado trava os controles da tela.</p>
@@ -755,13 +757,14 @@
   $('fileIn').addEventListener('change',e=>{ const fs=[...e.target.files]; e.target.value=''; if(fs.length) importFiles(fs); });
 
   // ====================== Menu e cadeado ======================
-  $('menuBtn').addEventListener('click',()=>{ $('mMidiSt').textContent=midiShort; $('engineInfo').textContent='Motor de som: '+(V&&V.kind==='worklet'?'completo':'básico (sem sync, largura de pulso, drive e envelope de afinação neste navegador)')+'.'; openD('dlgMenu'); });
+  $('menuBtn').addEventListener('click',()=>{ $('mMidiSt').textContent=midiShort; $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); $('engineInfo').textContent='Força da última nota recebida: '+lastVel+' de 127. Motor de som: '+(V&&V.kind==='worklet'?'completo':'básico (sem sync, largura de pulso, drive e envelope de afinação neste navegador)')+'.'; openD('dlgMenu'); });
   $('mSave').addEventListener('click',()=>{ closeD('dlgMenu'); openSave(); });
   $('mImport').addEventListener('click',()=>{ closeD('dlgMenu'); $('fileIn').click(); });
   $('mExport').addEventListener('click',()=>{ closeD('dlgMenu'); exportAll(); });
   $('mLearn').addEventListener('click',()=>{ closeD('dlgMenu'); setLearn(true); });
   $('mClear').addEventListener('click',()=>{ ccMap={}; actMap={}; LS.set(MAPKEY,ccMap); LS.set(ACTKEY,actMap); drawMap(); closeD('dlgMenu'); say('Mapeamento apagado'); });
   $('mMidi').addEventListener('click',()=>{ closeD('dlgMenu'); connectMidi(); });
+  $('mVel').addEventListener('click',()=>{ velLevel=(velLevel+1)%VLEV.length; LS.set(VKEY,velLevel); $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); });
   function setLocked(on){ document.body.classList.toggle('locked',on); $('lockBtn').classList.toggle('on',on); }
   $('lockBtn').addEventListener('click',()=>{ const on=!document.body.classList.contains('locked'); if(on&&learnMode) setLearn(false); setLocked(on); say(on?'Controles da tela travados':'Controles da tela liberados',1800); });
 
@@ -822,7 +825,7 @@
   }
   registerProcessor('aura-voice',AuraVoice);`;
 
-  let ctx=null, amp=null, master=null, comp=null, an=null, lfo=null, lfoP=null, lfoC=null, lfoW=null, V=null;
+  let ctx=null, amp=null, velG=null, master=null, comp=null, an=null, lfo=null, lfoP=null, lfoC=null, lfoW=null, V=null;
   const WI = {triangle:0, sawtooth:1, square:2};
   const ratio2 = () => Math.pow(2, P.o2 + P.d2/12);
 
@@ -877,7 +880,7 @@
     const sh = ctx.createWaveShaper(), N = 4096, curve = new Float32Array(N);
     for(let i=0;i<N;i++){ const x = (i/(N-1)*2-1)*3, a = Math.abs(x); curve[i] = Math.sign(x) * (a<0.6 ? a : 0.6 + 0.4*Math.tanh((a-0.6)/0.4)); }
     sh.curve = curve; sh.oversample = '2x';
-    amp.connect(comp); comp.connect(master); master.connect(an); master.connect(pre); pre.connect(sh); sh.connect(ctx.destination);
+    velG = ctx.createGain(); amp.connect(comp); comp.connect(velG); velG.connect(master); master.connect(an); master.connect(pre); pre.connect(sh); sh.connect(ctx.destination);
     lfo = ctx.createOscillator(); lfoP = ctx.createGain(); lfoC = ctx.createGain(); lfoW = ctx.createGain();
     lfoP.gain.value = lfoC.gain.value = lfoW.gain.value = 0; lfo.connect(lfoP); lfo.connect(lfoC); lfo.connect(lfoW); lfo.start();
     V = nativeVoice(); applyAll(); V.cut.forEach(p=>{ p.value=baseCut(); }); renderOled();
@@ -904,11 +907,23 @@
   // corte base do filtro, com acompanhamento de teclado (referência: Dó 1 soando)
   const baseCut = () => Math.min(cutHz(P.cut) * Math.pow(2, (P.kt||0) * ((lastNote + P.oct*12) - 24) / 12), 20000);
   function holdParam(p,t){ if(p.cancelAndHoldAtTime){ p.cancelAndHoldAtTime(t); } else { const v=p.value; p.cancelScheduledValues(t); p.setValueAtTime(v,t); } }
+  // ---- sensibilidade ao toque: a força da tecla muda o volume e o brilho
+  const VKEY='aura_vel_sens_v1', VLEV=[['Desligada',0],['Suave',0.45],['Média',0.75],['Forte',1]];
+  let velLevel = LS.get(VKEY,2); if(!(velLevel>=0 && velLevel<VLEV.length)) velLevel=2;
+  let lastVel = 100, velBright = 1;
+  const VREF = 100/127;                                        // os presets foram nivelados nesta força
+  function velApply(vel){
+    const s=VLEV[velLevel][1], v=Math.max(1,Math.min(127,vel))/127; lastVel=vel;
+    const curve = x => (1-s) + s*Math.pow(x,1.7);
+    velBright = Math.pow(2, s*(v-VREF)*2.4);                    // até cerca de ±1 oitava de brilho
+    velG.gain.setTargetAtTime(0.883*curve(v)/curve(VREF), ctx.currentTime, 0.004);
+  }
   function triggerEnv(vel){
-    const t = ctx.currentTime, peak = 0.45 + 0.55*(vel/127), att=Math.max(P.a,0.002), fa=Math.max(P.fa,0.002);
+    velApply(vel);
+    const t = ctx.currentTime, peak = 1, att=Math.max(P.a,0.002), fa=Math.max(P.fa,0.002);
     holdParam(amp.gain,t); amp.gain.linearRampToValueAtTime(peak, t+att); amp.gain.setTargetAtTime(peak*P.s, t+att, P.d/3);
-    const base = baseCut(), top = Math.min(base*Math.pow(2,P.fenv),20000), susF = Math.min(base*Math.pow(2,P.fenv*P.fs),20000);
-    V.cut.forEach(f=>{ holdParam(f,t); f.setValueAtTime(base,t); f.linearRampToValueAtTime(top,t+fa); f.setTargetAtTime(susF,t+fa,P.fd/3); });
+    const base = baseCut(), top = Math.min(base*velBright*Math.pow(2,P.fenv),20000), susF = Math.min(base*velBright*Math.pow(2,P.fenv*P.fs),20000);
+    V.cut.forEach(f=>{ holdParam(f,t); f.setValueAtTime(Math.min(base*velBright,20000),t); f.linearRampToValueAtTime(top,t+fa); f.setTargetAtTime(susF,t+fa,P.fd/3); });
     V.pitchEnv(t);
     gate = true;
   }
@@ -919,16 +934,15 @@
     gate = false;
   }
   function setPitch(n, immediate){ V.freq(noteFreq(n), P.glide/3, immediate || P.glide<0.002); }
-  function trackFilter(){   // nota ligada: o filtro acompanha a nova altura sem redisparar o envelope
-    if(!(P.kt>0)) return;
-    const t = ctx.currentTime, susF = Math.min(baseCut()*Math.pow(2,P.fenv*P.fs),20000);
+  function trackFilter(){   // nota ligada: o filtro acompanha a nova altura e a nova força sem redisparar o envelope
+    const t = ctx.currentTime, susF = Math.min(baseCut()*velBright*Math.pow(2,P.fenv*P.fs),20000);
     V.cut.forEach(f=>{ holdParam(f,t); f.setTargetAtTime(susF,t,0.03); });
   }
   function retune(){ if(ctx && stack.length) setPitch(stack[stack.length-1], true); }
   function noteOn(n, vel){
     if(!ctx) return; if(ctx.state!=='running') ctx.resume();
     held.delete(n); stack = stack.filter(x=>x!==n); stack.push(n); lastNote = n;
-    if(!gate){ setPitch(n,true); triggerEnv(vel||100); } else { setPitch(n,false); trackFilter(); }
+    if(!gate){ setPitch(n,true); triggerEnv(vel||100); } else { setPitch(n,false); velApply(vel||100); trackFilter(); }
     markKey(n,true);
   }
   function noteOff(n){ if(!ctx) return; if(sustainOn){ held.add(n); markKey(n,false); return; } realOff(n); }
@@ -1004,8 +1018,9 @@
   function markKey(n,on){ if(KEYS[n]) KEYS[n].classList.toggle('d',on); }
   const active=new Map();
   function keyAt(x,y){ const el=document.elementFromPoint(x,y); return el&&el.dataset&&el.dataset.n?parseInt(el.dataset.n):null; }
-  kb.addEventListener('pointerdown',e=>{ if(!ctx) initAudio(); const n=keyAt(e.clientX,e.clientY); if(n==null)return; kb.setPointerCapture(e.pointerId); active.set(e.pointerId,n); noteOn(n,100); });
-  kb.addEventListener('pointermove',e=>{ if(!active.has(e.pointerId))return; const n=keyAt(e.clientX,e.clientY); const cur=active.get(e.pointerId); if(n!=null&&n!==cur){ noteOn(n,100); noteOff(cur); active.set(e.pointerId,n);} });
+  function touchVel(n,y){ const r=KEYS[n].getBoundingClientRect(); return Math.round(35+92*Math.min(1,Math.max(0,(y-r.top)/r.height))); }
+  kb.addEventListener('pointerdown',e=>{ if(!ctx) initAudio(); const n=keyAt(e.clientX,e.clientY); if(n==null)return; kb.setPointerCapture(e.pointerId); active.set(e.pointerId,n); noteOn(n,touchVel(n,e.clientY)); });
+  kb.addEventListener('pointermove',e=>{ if(!active.has(e.pointerId))return; const n=keyAt(e.clientX,e.clientY); const cur=active.get(e.pointerId); if(n!=null&&n!==cur){ noteOn(n,touchVel(n,e.clientY)); noteOff(cur); active.set(e.pointerId,n);} });
   const up=e=>{ if(!active.has(e.pointerId))return; noteOff(active.get(e.pointerId)); active.delete(e.pointerId); };
   kb.addEventListener('pointerup',up); kb.addEventListener('pointercancel',up);
 
