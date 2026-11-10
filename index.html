@@ -282,16 +282,19 @@
   let ctx=null, osc=null, sub=null, oscG=null, subG=null, f1=null, f2=null, amp=null, master=null, comp=null, an=null, lfo=null, lfoG=null;
 
   // ---------- Presets ----------
-  const PKEYS=['oct','wave','lvl','sub','cut','fenv','glide','a','d','s','r','vol'];
+  const PKEYS=['oct','wave','lvl','sub','cut','fenv','kt','glide','a','d','s','r','vol'];
   const FACTORY = [
-    {name:'DEEP SUB BASS', factory:true, oct:-1, wave:'square',   lvl:0.75, sub:0.35, cut:0.41, fenv:0.8, glide:0.03,  a:0.008, d:0.295, s:0.59, r:0.19, vol:1.6},
-    {name:'REGGAE POP',    factory:true, oct:-1, wave:'triangle', lvl:0.75, sub:0.45, cut:0.55, fenv:0.6, glide:0.015, a:0.004, d:0.35,  s:0.55, r:0.12, vol:1.8},
-    {name:'EQUALIZE',      factory:true, oct:-1, wave:'sawtooth', lvl:0.75, sub:0.30, cut:0.50, fenv:1.2, glide:0.0,   a:0.003, d:0.22,  s:0.45, r:0.08, vol:1.4}
+    {name:'DEEP SUB BASS', factory:true, oct:-1, wave:'square',   lvl:0.75, sub:0.35, cut:0.41, fenv:0.8, kt:0, glide:0.03,  a:0.008, d:0.295, s:0.59, r:0.19, vol:1.6},
+    {name:'REGGAE POP',    factory:true, oct:-1, wave:'triangle', lvl:0.75, sub:0.45, cut:0.55, fenv:0.6, kt:0, glide:0.015, a:0.004, d:0.35,  s:0.55, r:0.12, vol:1.8},
+    {name:'EQUALIZE',      factory:true, oct:-1, wave:'sawtooth', lvl:0.75, sub:0.30, cut:0.50, fenv:1.2, kt:0, glide:0.0,   a:0.003, d:0.22,  s:0.45, r:0.08, vol:1.4},
+    // importados do Minimoog Model D (iPad): só o oscilador 1 ligado, onda quadrada em 32', filtro com acompanhamento de teclado em 2/3
+    {name:'MOOG-DIX',          factory:true, oct:-2, wave:'square', lvl:1.0, sub:0, cut:0.0735, fenv:0.94, kt:0.667, glide:0, a:0.004, d:0.25, s:0.59, r:0.25, vol:1.35},
+    {name:'CHURCH SYNTH BASS', factory:true, oct:-2, wave:'square', lvl:1.0, sub:0, cut:0.0560, fenv:1.04, kt:0.667, glide:0, a:0.002, d:0.25, s:0.60, r:0.25, vol:1.65}
   ];
   const UKEY='aura_user_presets_v1', LKEY='aura_last_preset_v1';
   let USER=[];
   try{ const u=JSON.parse(localStorage.getItem(UKEY)||'[]');
-    if(Array.isArray(u)) USER=u.filter(p=>p&&typeof p.name==='string').map(p=>{ if(!('lvl' in p)) p.lvl=0.75; return p; }).filter(p=>PKEYS.every(k=>k in p)); }catch(e){}
+    if(Array.isArray(u)) USER=u.filter(p=>p&&typeof p.name==='string').map(p=>{ if(!('lvl' in p)) p.lvl=0.75; if(!('kt' in p)) p.kt=0; return p; }).filter(p=>PKEYS.every(k=>k in p)); }catch(e){}
   let PRESETS = FACTORY.concat(USER);
   let curPreset = 0, dirty = false;
   try{ const l=parseInt(localStorage.getItem(LKEY)); if(l>=0&&l<PRESETS.length) curPreset=l; }catch(e){}
@@ -477,28 +480,31 @@
     f1.connect(f2); f2.connect(amp); amp.connect(comp); comp.connect(master); master.connect(an);
     master.connect(pre); pre.connect(sh); sh.connect(ctx.destination); window.__auraOut = sh;
     osc.frequency.value = sub.frequency.value = 55;
-    f1.frequency.value = f2.frequency.value = cutHz(P.cut);
+    f1.frequency.value = f2.frequency.value = baseCut();
     osc.start(); sub.start(); lfo.start();
     applyAll(); renderOled();
   }
   function applyAll(){
     if(!ctx) return;
     osc.type = P.wave; oscG.gain.value = P.lvl * 0.6; subG.gain.value = P.sub * 0.6; master.gain.value = P.vol;
-    if(!gate){ f1.frequency.value = f2.frequency.value = cutHz(P.cut); }
+    if(!gate){ f1.frequency.value = f2.frequency.value = baseCut(); }
     updateDetune();
   }
   function updateDetune(){ if(!ctx) return; const c = bend>=0 ? bend*200 : bend*1200; osc.detune.value=c; sub.detune.value=c; lfoG.gain.value = mod*60; }
   const noteFreq = n => mtof(n + P.oct*12);
+  let lastNote = 36;
+  // corte base do filtro, com acompanhamento de teclado (referência: Dó 1 soando)
+  const baseCut = () => Math.min(cutHz(P.cut) * Math.pow(2, (P.kt||0) * ((lastNote + P.oct*12) - 24) / 12), 20000);
   function holdParam(p,t){ if(p.cancelAndHoldAtTime){ p.cancelAndHoldAtTime(t); } else { const v=p.value; p.cancelScheduledValues(t); p.setValueAtTime(v,t); } }
   function triggerEnv(vel){
     const t = ctx.currentTime, peak = 0.45 + 0.55*(vel/127), att=Math.max(P.a,0.002);
     holdParam(amp.gain,t); amp.gain.linearRampToValueAtTime(peak, t+att); amp.gain.setTargetAtTime(peak*P.s, t+att, P.d/3);
-    const base = cutHz(P.cut), top = Math.min(base*Math.pow(2,P.fenv),20000), susF = Math.min(base*Math.pow(2,P.fenv*P.s),20000);
+    const base = baseCut(), top = Math.min(base*Math.pow(2,P.fenv),20000), susF = Math.min(base*Math.pow(2,P.fenv*P.s),20000);
     [f1,f2].forEach(f=>{ holdParam(f.frequency,t); f.frequency.setValueAtTime(base,t); f.frequency.linearRampToValueAtTime(top,t+att); f.frequency.setTargetAtTime(susF,t+att,P.d/3); });
     gate = true;
   }
   function releaseEnv(){
-    const t = ctx.currentTime, base = cutHz(P.cut);
+    const t = ctx.currentTime, base = baseCut();
     holdParam(amp.gain,t); amp.gain.setTargetAtTime(0,t,P.r/3);
     [f1,f2].forEach(f=>{ holdParam(f.frequency,t); f.frequency.setTargetAtTime(base,t,P.r/3); });
     gate = false;
@@ -508,15 +514,21 @@
     [osc,sub].forEach(o=>{ o.frequency.cancelScheduledValues(t);
       if(immediate || P.glide<0.002) o.frequency.setValueAtTime(fr,t); else o.frequency.setTargetAtTime(fr,t,P.glide/3); });
   }
+  function trackFilter(){   // nota ligada: o filtro acompanha a nova altura sem redisparar o envelope
+    if(!(P.kt>0)) return;
+    const t = ctx.currentTime, susF = Math.min(baseCut()*Math.pow(2,P.fenv*P.s),20000);
+    [f1,f2].forEach(f=>{ holdParam(f.frequency,t); f.frequency.setTargetAtTime(susF,t,0.03); });
+  }
   function retune(){ if(ctx && stack.length) setPitch(stack[stack.length-1], true); }
   function noteOn(n, vel){
     if(!ctx) return; if(ctx.state!=='running') ctx.resume();
     held.delete(n); stack = stack.filter(x=>x!==n); stack.push(n);
-    if(!gate){ setPitch(n,true); triggerEnv(vel||100); } else { setPitch(n,false); }
+    lastNote = n;
+    if(!gate){ setPitch(n,true); triggerEnv(vel||100); } else { setPitch(n,false); trackFilter(); }
     markKey(n,true);
   }
   function noteOff(n){ if(!ctx) return; if(sustainOn){ held.add(n); markKey(n,false); return; } realOff(n); }
-  function realOff(n){ stack = stack.filter(x=>x!==n); markKey(n,false); if(stack.length===0) releaseEnv(); else setPitch(stack[stack.length-1],false); }
+  function realOff(n){ stack = stack.filter(x=>x!==n); markKey(n,false); if(stack.length===0) releaseEnv(); else { lastNote=stack[stack.length-1]; setPitch(lastNote,false); trackFilter(); } }
   function setSustain(on){ sustainOn=on; if(!on){ const hs=[...held]; held.clear(); hs.forEach(realOff); } }
   function allOff(){ stack=[]; held.clear(); if(ctx&&gate) releaseEnv(); document.querySelectorAll('.k.d').forEach(k=>k.classList.remove('d')); }
 
