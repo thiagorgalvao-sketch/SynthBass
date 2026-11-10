@@ -73,6 +73,13 @@
   .kn label{display:block;margin-top:5px;font-size:10px;letter-spacing:1.6px;font-weight:800;color:var(--ink)}
   .kn output{display:block;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;color:var(--ink2);min-height:14px}
 
+  .kn .cc{display:block;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10px;color:#fff;background:var(--ink);border-radius:4px;padding:0 5px;margin:2px auto 0;width:max-content;visibility:hidden}
+  .kn.mapped .cc{visibility:visible}
+  body.learn .kn .dial{box-shadow:0 0 0 3px rgba(255,171,46,.45);cursor:pointer}
+  body.learn .kn.target .dial{box-shadow:0 0 0 4px var(--led),0 0 18px var(--led);animation:blink .7s infinite alternate}
+  @keyframes blink{to{box-shadow:0 0 0 4px var(--led),0 0 4px var(--led)}}
+  body.learn .status{color:#8a2a10;font-weight:700}
+  .btn.small{min-height:46px;padding:0 12px}
   /* seletores */
   .sel{text-align:center}
   .sel .cap2{font-size:10px;letter-spacing:1.6px;font-weight:800;margin-top:6px}
@@ -115,6 +122,8 @@
           </div>
           <button id="start" class="btn"><i></i>Ligar áudio</button>
           <button id="midiBtn" class="btn"><i></i>Conectar MIDI</button>
+          <button id="learnBtn" class="btn"><i></i>Mapear knobs</button>
+          <button id="clearBtn" class="btn small" title="Apagar mapeamento">Limpar</button>
         </div>
         <p class="status" id="midiInfo">Toque em “Ligar áudio” e depois em “Conectar MIDI”. Gire os knobs arrastando para cima e para baixo.</p>
 
@@ -167,7 +176,7 @@
   };
   const P = Object.assign({}, PRESETS.deep);
   let curPreset = 'deep';
-  let bend = 0, stack = [], sustainOn = false, held = new Set(), gate = false;
+  let bend = 0, stack = [], sustainOn = false, held = new Set(), gate = false, learnMode = false;
 
   const cutHz = v => 30 * Math.pow(18000/30, v);
   const mtof = n => 440 * Math.pow(2, (n-69)/12);
@@ -195,11 +204,12 @@
   }
   KNOBS.forEach(k=>{
     const w=document.createElement('div'); w.className='kn'+(k.big?' big':'');
-    w.innerHTML='<div class="dial"><div class="cap"></div></div><label>'+k.label+'</label><output></output>';
+    w.innerHTML='<div class="dial"><div class="cap"></div></div><label>'+k.label+'</label><output></output><span class="cc"></span>';
     $('sec_'+k.sec).appendChild(w);
-    k.dial=w.querySelector('.dial'); k.cap=w.querySelector('.cap'); k.out=w.querySelector('output'); KN[k.id]=k;
+    k.dial=w.querySelector('.dial'); k.cap=w.querySelector('.cap'); k.out=w.querySelector('output'); k.wrap=w; k.ccEl=w.querySelector('.cc'); KN[k.id]=k;
     let startY=0, startP=0, drag=false, lastTap=0;
     k.dial.addEventListener('pointerdown',e=>{
+      if(learnMode){ setTarget(k.id); return; }
       const now=Date.now();
       if(now-lastTap<320){ P[k.id]=PRESETS[curPreset][k.id]; drawKnob(k); applyAll(); lastTap=0; return; }
       lastTap=now; drag=true; startY=e.clientY; startP=toPos(k,P[k.id]); k.dial.setPointerCapture(e.pointerId); e.preventDefault();
@@ -213,6 +223,40 @@
     k.dial.addEventListener('pointerup',end); k.dial.addEventListener('pointercancel',end);
     drawKnob(k);
   });
+
+  // ---------- Mapeamento de knobs (MIDI learn) ----------
+  const MAPKEY='aura_cc_map_v1', RESERVED=[64,120,123];
+  let ccMap={}, learnTarget=null;
+  try{ ccMap=JSON.parse(localStorage.getItem(MAPKEY)||'{}')||{}; }catch(e){ ccMap={}; }
+  function saveMap(){ try{ localStorage.setItem(MAPKEY,JSON.stringify(ccMap)); }catch(e){} }
+  function drawMap(){
+    KNOBS.forEach(k=>{ k.wrap.classList.remove('mapped'); });
+    Object.keys(ccMap).forEach(cc=>{ const k=KN[ccMap[cc]]; if(k){ k.wrap.classList.add('mapped'); k.ccEl.textContent='CC '+cc; } });
+  }
+  function setTarget(id){
+    learnTarget=id; KNOBS.forEach(k=>k.wrap.classList.toggle('target',k.id===id));
+    if(id) $('midiInfo').textContent='Agora gire no SMK-25 o knob que vai controlar '+KN[id].label+'.';
+  }
+  function setLearn(on){
+    learnMode=on; document.body.classList.toggle('learn',on); $('learnBtn').classList.toggle('on',on);
+    $('learnBtn').lastChild.textContent=on?'Concluir':'Mapear knobs'; setTarget(null);
+    $('midiInfo').textContent=on?'Modo mapeamento: toque em um knob da tela e depois gire o knob do SMK-25. Repita para cada knob e toque em “Concluir”.'
+      :'Mapeamento salvo neste aparelho. '+Object.keys(ccMap).length+' knob(s) mapeado(s).';
+  }
+  function learnCC(cc){
+    if(RESERVED.includes(cc)) return;
+    Object.keys(ccMap).forEach(c=>{ if(ccMap[c]===learnTarget) delete ccMap[c]; });
+    ccMap[cc]=learnTarget; saveMap(); drawMap();
+    $('midiInfo').textContent=KN[learnTarget].label+' ficou no CC '+cc+'. Toque no próximo knob da tela ou em “Concluir”.';
+    learnTarget=null; KNOBS.forEach(k=>k.wrap.classList.remove('target'));
+  }
+  function applyCC(cc,val){
+    const k=KN[ccMap[cc]]; if(!k) return false;
+    P[k.id]=toVal(k,val/127); drawKnob(k); applyAll(); return true;
+  }
+  $('learnBtn').addEventListener('click',()=>setLearn(!learnMode));
+  $('clearBtn').addEventListener('click',()=>{ ccMap={}; saveMap(); drawMap(); $('midiInfo').textContent='Mapeamento apagado.'; });
+  drawMap();
 
   function drawSelectors(){
     document.querySelectorAll('#waveSeg button').forEach(b=>b.classList.toggle('on',b.dataset.w===P.wave));
@@ -341,7 +385,10 @@
     if(cmd===0x90 && d2>0) noteOn(d1,d2);
     else if(cmd===0x80 || (cmd===0x90&&d2===0)) noteOff(d1);
     else if(cmd===0xE0){ bend=(((d2<<7)|d1)-8192)/8192; updateDetune(); }
-    else if(cmd===0xB0){ if(d1===64) setSustain(d2>=64); if(d1===123||d1===120) allOff(); }
+    else if(cmd===0xB0){
+      if(learnMode && learnTarget){ learnCC(d1); return; }
+      if(d1===64) setSustain(d2>=64); else if(d1===123||d1===120) allOff(); else applyCC(d1,d2);
+    }
   }
   function refreshInputs(){
     if(!midi) return;
