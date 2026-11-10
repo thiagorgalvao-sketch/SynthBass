@@ -118,8 +118,17 @@
   .octv{font-family:"SF Mono",Menlo,Consolas,monospace;background:#040506;color:var(--oled);min-width:44px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;border-right:1px solid #050506;text-shadow:0 0 6px rgba(127,233,255,.6)}
   .stack{display:flex;flex-direction:column;gap:9px;align-items:center;padding:0 6px}
 
-  .presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-  .presets .btn{flex:1 1 140px;justify-content:center}
+  .pnav{display:flex;align-items:stretch;gap:6px}
+  .pnav .btn{font-size:16px;padding:0 14px;letter-spacing:0}
+  .dlg{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}
+  .dlg.open{display:flex}
+  .dlg .box{width:min(440px,100%);background:linear-gradient(180deg,#e3e5e8,#b9bcc1);border-radius:12px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.7),inset 0 2px 0 rgba(255,255,255,.85)}
+  .dlg h3{margin:0 0 12px;font-size:13px;letter-spacing:3px}
+  .dlg input{width:100%;font:inherit;font-size:17px;padding:12px;border-radius:8px;border:1px solid #050506;background:#040506;color:var(--oled);
+    font-family:"SF Mono",Menlo,Consolas,monospace;-webkit-user-select:text;user-select:text;margin-bottom:12px}
+  .dlg .btn{width:100%;justify-content:center;margin-top:8px}
+  .dlg .btn.danger{background:linear-gradient(180deg,#8a2a1a,#4d140b)}
+  .dlg p{font-size:12px;color:var(--ink2);margin:10px 0 0}
 
   /* teclado ocupa o resto da tela */
   .keysWrap{flex:1 1 auto;min-height:150px;display:flex;flex-direction:column;background:linear-gradient(180deg,#050506,#17191c);padding:0 clamp(6px,1vw,14px) clamp(8px,1.2vw,16px)}
@@ -134,7 +143,7 @@
   .k.b.d{background:linear-gradient(180deg,#b06a05,#6a3e00);box-shadow:0 2px 3px rgba(0,0,0,.65)}
 
   /* telas baixas (celular deitado, tablet pequeno) */
-  @media (max-height:560px){ :root{--k:clamp(44px,9vh,60px)} .status{display:none} .top{margin-bottom:12px} .presets{margin-top:8px} .btn{min-height:38px} .seg button{min-height:36px} .keysWrap{min-height:120px} #kb{min-height:105px} }
+  @media (max-height:560px){ :root{--k:clamp(44px,9vh,60px)} .status{display:none} .top{margin-bottom:12px} .btn{min-height:38px} .seg button{min-height:36px} .keysWrap{min-height:120px} #kb{min-height:105px} }
   /* telas estreitas (em pé) */
   @media (max-width:700px){ :root{--k:clamp(54px,17vw,74px)} .oled{flex:1;min-width:0} .brand{width:100%} .tools .btn{flex:1;justify-content:center} .tools{width:100%} }
 </style>
@@ -147,13 +156,18 @@
       <span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
       <div class="top">
         <div class="brand"><b>AURA</b><span>SYNTH BASS</span></div>
+        <div class="pnav">
+        <button id="pPrev" class="btn" aria-label="Preset anterior">◀</button>
         <div class="oled">
           <canvas id="scope" width="224" height="88"></canvas>
-          <div class="txt"><b id="oPreset">DEEP SUB BASS</b><span id="oMidi">MIDI: —</span><br><span id="lastMsg">&nbsp;</span></div>
+          <div class="txt"><b id="oPreset">01 DEEP SUB BASS</b><span id="oMidi">MIDI: —</span><br><span id="lastMsg">&nbsp;</span></div>
+        </div>
+        <button id="pNext" class="btn" aria-label="Próximo preset">▶</button>
         </div>
         <div class="tools">
           <button id="start" class="btn"><i></i>Ligar áudio</button>
           <button id="midiBtn" class="btn"><i></i>Conectar MIDI</button>
+          <button id="saveBtn" class="btn">Salvar preset</button>
           <button id="learnBtn" class="btn"><i></i>Mapear knobs</button>
           <button id="clearBtn" class="btn" title="Apagar mapeamento">Limpar</button>
           <button id="fsBtn" class="btn icon" title="Tela cheia" aria-label="Tela cheia">⛶</button>
@@ -186,28 +200,37 @@
         <div class="sec"><h2>SAÍDA</h2><div id="sec_out" class="ctrls"></div></div>
       </div>
 
-      <div class="presets">
-        <button class="btn on" data-p="deep"><i></i>Deep Sub Bass</button>
-        <button class="btn" data-p="reggae"><i></i>Reggae Pop</button>
-        <button class="btn" data-p="equalize"><i></i>Equalize</button>
-      </div>
     </div>
     <div class="keysWrap"><div class="felt"></div><div id="kb"></div></div>
   </div>
   <div class="cheek"></div>
 </div>
+<div class="dlg" id="dlg"><div class="box">
+  <h3>SALVAR PRESET</h3>
+  <input id="pName" type="text" maxlength="18" autocomplete="off" autocapitalize="characters" placeholder="NOME DO PRESET">
+  <button id="dNew" class="btn">Salvar como novo</button>
+  <button id="dOver" class="btn">Substituir</button>
+  <button id="dDel" class="btn danger">Excluir</button>
+  <button id="dCancel" class="btn">Cancelar</button>
+  <p id="dNote"></p>
+</div></div>
 
 <script>
 (function(){
   const $ = id => document.getElementById(id);
   let ctx=null, osc=null, sub=null, oscG=null, subG=null, f1=null, f2=null, amp=null, master=null, comp=null, an=null;
-  const PRESETS = {
-    deep:    {name:'DEEP SUB BASS', oct:-1, wave:'square',   sub:0.35, cut:0.41, fenv:0.8, glide:0.03,  a:0.008, d:0.295, s:0.59, r:0.19, vol:1.6},
-    reggae:  {name:'REGGAE POP',    oct:-1, wave:'triangle', sub:0.45, cut:0.55, fenv:0.6, glide:0.015, a:0.004, d:0.35,  s:0.55, r:0.12, vol:1.8},
-    equalize:{name:'EQUALIZE',      oct:-1, wave:'sawtooth', sub:0.30, cut:0.50, fenv:1.2, glide:0.0,   a:0.003, d:0.22,  s:0.45, r:0.08, vol:1.4}
-  };
-  const P = Object.assign({}, PRESETS.deep);
-  let curPreset = 'deep';
+  const PKEYS=['oct','wave','sub','cut','fenv','glide','a','d','s','r','vol'];
+  const FACTORY = [
+    {name:'DEEP SUB BASS', factory:true, oct:-1, wave:'square',   sub:0.35, cut:0.41, fenv:0.8, glide:0.03,  a:0.008, d:0.295, s:0.59, r:0.19, vol:1.6},
+    {name:'REGGAE POP',    factory:true, oct:-1, wave:'triangle', sub:0.45, cut:0.55, fenv:0.6, glide:0.015, a:0.004, d:0.35,  s:0.55, r:0.12, vol:1.8},
+    {name:'EQUALIZE',      factory:true, oct:-1, wave:'sawtooth', sub:0.30, cut:0.50, fenv:1.2, glide:0.0,   a:0.003, d:0.22,  s:0.45, r:0.08, vol:1.4}
+  ];
+  const UKEY='aura_user_presets_v1', LKEY='aura_last_preset_v1';
+  let USER=[]; try{ const u=JSON.parse(localStorage.getItem(UKEY)||'[]'); if(Array.isArray(u)) USER=u.filter(p=>p&&typeof p.name==='string'&&PKEYS.every(k=>k in p)); }catch(e){}
+  let PRESETS = FACTORY.concat(USER);
+  let curPreset = 0, dirty = false;
+  try{ const l=parseInt(localStorage.getItem(LKEY)); if(l>=0&&l<PRESETS.length) curPreset=l; }catch(e){}
+  const P = {}; PKEYS.forEach(k=>P[k]=PRESETS[curPreset][k]);
   let bend = 0, stack = [], sustainOn = false, held = new Set(), gate = false, learnMode = false;
 
   const cutHz = v => 30 * Math.pow(18000/30, v);
@@ -249,7 +272,7 @@
     k.dial.addEventListener('pointermove',e=>{
       if(!drag) return;
       const p=Math.min(1,Math.max(0,startP+(startY-e.clientY)/220));
-      P[k.id]=toVal(k,p); drawKnob(k); applyAll();
+      P[k.id]=toVal(k,p); drawKnob(k); applyAll(); setDirty(true);
     });
     const end=()=>{drag=false;};
     k.dial.addEventListener('pointerup',end); k.dial.addEventListener('pointercancel',end);
@@ -284,7 +307,7 @@
   }
   function applyCC(cc,val){
     const k=KN[ccMap[cc]]; if(!k) return false;
-    P[k.id]=toVal(k,val/127); drawKnob(k); applyAll(); return true;
+    P[k.id]=toVal(k,val/127); drawKnob(k); applyAll(); setDirty(true); return true;
   }
   $('learnBtn').addEventListener('click',()=>setLearn(!learnMode));
   $('clearBtn').addEventListener('click',()=>{ ccMap={}; saveMap(); drawMap(); $('midiInfo').textContent='Mapeamento apagado.'; });
@@ -294,17 +317,60 @@
     document.querySelectorAll('#waveSeg button').forEach(b=>b.classList.toggle('on',b.dataset.w===P.wave));
     $('octV').textContent=(P.oct>0?'+':'')+P.oct;
   }
-  document.querySelectorAll('#waveSeg button').forEach(b=>b.addEventListener('click',()=>{P.wave=b.dataset.w; drawSelectors(); applyAll();}));
-  $('octDn').addEventListener('click',()=>{P.oct=Math.max(-3,P.oct-1); drawSelectors(); retune();});
-  $('octUp').addEventListener('click',()=>{P.oct=Math.min(1,P.oct+1); drawSelectors(); retune();});
+  document.querySelectorAll('#waveSeg button').forEach(b=>b.addEventListener('click',()=>{P.wave=b.dataset.w; drawSelectors(); applyAll(); setDirty(true);}));
+  $('octDn').addEventListener('click',()=>{P.oct=Math.max(-3,P.oct-1); drawSelectors(); retune(); setDirty(true);});
+  $('octUp').addEventListener('click',()=>{P.oct=Math.min(1,P.oct+1); drawSelectors(); retune(); setDirty(true);});
 
-  function loadPreset(name){
-    curPreset=name; Object.assign(P,PRESETS[name]);
-    KNOBS.forEach(drawKnob); drawSelectors(); applyAll(); retune();
-    $('oPreset').textContent=PRESETS[name].name;
-    document.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on', b.dataset.p===name));
+  function showName(){
+    const n=String(curPreset+1).padStart(2,'0');
+    $('oPreset').textContent=n+' '+PRESETS[curPreset].name+(dirty?' *':'');
   }
-  document.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>loadPreset(b.dataset.p)));
+  function setDirty(v){ if(dirty!==v){ dirty=v; showName(); } }
+  function loadPreset(i){
+    curPreset=((i%PRESETS.length)+PRESETS.length)%PRESETS.length;
+    PKEYS.forEach(k=>P[k]=PRESETS[curPreset][k]);
+    KNOBS.forEach(drawKnob); drawSelectors(); applyAll(); retune();
+    dirty=false; showName();
+    try{ localStorage.setItem(LKEY,String(curPreset)); }catch(e){}
+  }
+  $('pPrev').addEventListener('click',()=>loadPreset(curPreset-1));
+  $('pNext').addEventListener('click',()=>loadPreset(curPreset+1));
+
+  // ---------- Salvar / substituir / excluir preset ----------
+  const dlg=$('dlg'), pName=$('pName');
+  function persistUser(){
+    USER=PRESETS.filter(p=>!p.factory);
+    try{ localStorage.setItem(UKEY,JSON.stringify(USER)); return true; }catch(e){ return false; }
+  }
+  function snapshot(name){ const o={name:name}; PKEYS.forEach(k=>o[k]=P[k]); return o; }
+  function cleanName(){ return (pName.value||'').trim().toUpperCase().slice(0,18) || ('MEU PRESET '+(USER.length+1)); }
+  function openDlg(){
+    const cur=PRESETS[curPreset], isUser=!cur.factory;
+    pName.value=isUser?cur.name:'';
+    $('dOver').style.display=isUser?'':'none'; $('dDel').style.display=isUser?'':'none';
+    if(isUser){ $('dOver').textContent='Substituir “'+cur.name+'”'; $('dDel').textContent='Excluir “'+cur.name+'”'; }
+    $('dNote').textContent=isUser?'Os presets ficam salvos neste aparelho.':'Presets de fábrica não são alterados: o seu ajuste é salvo como um preset novo, neste aparelho.';
+    dlg.classList.add('open');
+  }
+  function closeDlg(msg){ dlg.classList.remove('open'); pName.blur(); if(msg) $('midiInfo').textContent=msg; }
+  $('saveBtn').addEventListener('click',openDlg);
+  $('dCancel').addEventListener('click',()=>closeDlg());
+  dlg.addEventListener('click',e=>{ if(e.target===dlg) closeDlg(); });
+  $('dNew').addEventListener('click',()=>{
+    const p=snapshot(cleanName()); PRESETS.push(p); const ok=persistUser();
+    loadPreset(PRESETS.length-1); closeDlg(ok?'Preset “'+p.name+'” salvo.':'Não foi possível gravar neste navegador; o preset vale só até fechar a página.');
+  });
+  $('dOver').addEventListener('click',()=>{
+    if(PRESETS[curPreset].factory) return;
+    const p=snapshot(cleanName()); PRESETS[curPreset]=p; const ok=persistUser();
+    loadPreset(curPreset); closeDlg(ok?'Preset “'+p.name+'” atualizado.':'Não foi possível gravar neste navegador.');
+  });
+  $('dDel').addEventListener('click',()=>{
+    if(PRESETS[curPreset].factory) return;
+    const n=PRESETS[curPreset].name; PRESETS.splice(curPreset,1); persistUser();
+    loadPreset(Math.min(curPreset,PRESETS.length-1)); closeDlg('Preset “'+n+'” excluído.');
+  });
+  showName();
   drawSelectors();
 
   // ---------- Áudio ----------
@@ -433,6 +499,7 @@
     $('lastMsg').textContent='IN '+Array.from(d).join(' ');
     if(cmd===0x90 && d2>0) noteOn(d1,d2);
     else if(cmd===0x80 || (cmd===0x90&&d2===0)) noteOff(d1);
+    else if(cmd===0xC0){ if(d1<PRESETS.length) loadPreset(d1); }
     else if(cmd===0xE0){ bend=(((d2<<7)|d1)-8192)/8192; updateDetune(); }
     else if(cmd===0xB0){
       if(learnMode && learnTarget){ learnCC(d1); return; }
