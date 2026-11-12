@@ -209,6 +209,28 @@
   #learnBar .btn{min-height:40px}
 
   body.perf #menuBtn{display:none}
+  /* ===== v7: painel impresso, chaves de alavanca e knobs pretos ===== */
+  :root{--cheek:clamp(8px,1.3vw,18px)}
+  .cheek{background:linear-gradient(90deg,#141517,#34363a 45%,#1c1d20 80%,#0d0e0f);box-shadow:inset 0 2px 2px rgba(255,255,255,.12),inset 0 -3px 4px rgba(0,0,0,.6)}
+  .panel{box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -2px 0 rgba(0,0,0,.25)}
+  .sec{border:0;border-radius:0;background:none;box-shadow:none;padding:22px 4px 3px}
+  .sec h2{top:0;left:0;right:0;padding:0 0 3px;background:none;color:#1b1d20;border-radius:0;box-shadow:0 1px 0 rgba(255,255,255,.7);border-bottom:1.5px solid #1b1d20;font-size:9.5px;letter-spacing:3px;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+  .dial::before{background:radial-gradient(circle,#c4c7cc 62%,#a9adb3);box-shadow:inset 0 1px 3px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.7)}
+  .cap{background:radial-gradient(circle at 50% 28%,#45474c,#1b1c1f 55%,#0e0f10);box-shadow:0 5px 8px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.6),inset 0 0 0 1.5px #060607,inset 0 2px 2px rgba(255,255,255,.16)}
+  .cap::before{inset:22%;background:radial-gradient(circle at 50% 35%,#2c2e32,#141517);box-shadow:inset 0 1px 1px rgba(255,255,255,.12),0 0 0 1px rgba(0,0,0,.6)}
+  .cap::after,.kn.big .cap::after{top:5%;height:40%;width:6%;margin-left:-3%;background:#f4f5f6;box-shadow:none}
+  .kn.big .cap::after{background:var(--amber)}
+  .seg.lever{display:inline-flex;flex-direction:column;align-items:flex-end;border:0;box-shadow:none;border-radius:0;overflow:visible;background:none}
+  .seg.lever button,.seg.lever button.txt,.seg.lever button.on{display:flex;align-items:center;justify-content:flex-end;gap:6px;width:auto;min-width:0;min-height:0;height:21px;padding:0 0 0 4px;
+    background:none;border:0;box-shadow:none;color:#24272b;text-shadow:none;font-size:9.5px;letter-spacing:.5px;font-weight:800}
+  .seg.lever button svg{width:20px;height:12px;margin:0;stroke-width:2.2}
+  .seg.lever button::after{content:"";flex:0 0 15px;height:21px;background:linear-gradient(90deg,#060607,#26282c 50%,#060607)}
+  .seg.lever button:first-child::after{border-radius:8px 8px 0 0}
+  .seg.lever button:last-child::after{border-radius:0 0 8px 8px}
+  .seg.lever button.on::after{background:radial-gradient(circle at 50% 50%,#fbfbfc 0 2.5px,#b4b8be 3.5px 5px,#55585e 6px,rgba(0,0,0,0) 7px),linear-gradient(90deg,#060607,#26282c 50%,#060607)}
+  .seg.lever button.on{color:#000}
+  .stack{gap:4px}
+
   /* tela em pé reduzida: mesmo painel do tablet deitado, com o teclado na proporção normal e o resto vazio */
   .dlg .box, #learnBar{zoom:var(--dz,1)} .dlg .box{max-height:calc(92vh / var(--dz,1))} #pList{max-height:calc(50vh / var(--dz,1))}
   html.tall body{display:flex;flex-direction:column;justify-content:center} html.tall .synth{min-height:0} html.tall .keysWrap{flex:0 0 auto;height:330px}
@@ -245,18 +267,18 @@
       <div class="sections">
         <div class="sec"><h2>OSCILADOR 1</h2><div class="ctrls">
           <div class="stack">
-            <div class="sel"><div class="seg" data-key="wave"><button data-v="square" title="Quadrada / pulso"><svg viewBox="0 0 30 18"><path d="M2 14V4h9v10h9V4h8"/></svg></button><button data-v="sawtooth" title="Dente de serra"><svg viewBox="0 0 30 18"><path d="M2 14L14 4v10L26 4v10"/></svg></button><button data-v="triangle" title="Triângulo"><svg viewBox="0 0 30 18"><path d="M2 14l6.5-10 6.5 10 6.5-10L28 14"/></svg></button></div><div class="cap2">ONDA</div></div>
+            <div class="sel"><div class="seg lever" data-key="wave"><button data-v="square" title="Quadrada / pulso"><svg viewBox="0 0 30 18"><path d="M2 14V4h9v10h9V4h8"/></svg></button><button data-v="sawtooth" title="Dente de serra"><svg viewBox="0 0 30 18"><path d="M2 14L14 4v10L26 4v10"/></svg></button><button data-v="triangle" title="Triângulo"><svg viewBox="0 0 30 18"><path d="M2 14l6.5-10 6.5 10 6.5-10L28 14"/></svg></button></div><div class="cap2">ONDA</div></div>
             <div class="sel"><div class="seg"><button id="octDn">−</button><span class="octv" id="octV">-1</span><button id="octUp">+</button></div><div class="cap2">OITAVA</div></div>
           </div>
           <div id="sec_osc" class="ctrls"></div>
         </div></div>
         <div class="sec"><h2>OSCILADOR 2</h2><div class="ctrls">
           <div class="stack">
-            <div class="sel"><div class="seg" data-key="w2"><button data-v="square" title="Quadrada / pulso"><svg viewBox="0 0 30 18"><path d="M2 14V4h9v10h9V4h8"/></svg></button><button data-v="sawtooth" title="Dente de serra"><svg viewBox="0 0 30 18"><path d="M2 14L14 4v10L26 4v10"/></svg></button><button data-v="triangle" title="Triângulo"><svg viewBox="0 0 30 18"><path d="M2 14l6.5-10 6.5 10 6.5-10L28 14"/></svg></button></div><div class="cap2">ONDA</div></div>
+            <div class="sel"><div class="seg lever" data-key="w2"><button data-v="square" title="Quadrada / pulso"><svg viewBox="0 0 30 18"><path d="M2 14V4h9v10h9V4h8"/></svg></button><button data-v="sawtooth" title="Dente de serra"><svg viewBox="0 0 30 18"><path d="M2 14L14 4v10L26 4v10"/></svg></button><button data-v="triangle" title="Triângulo"><svg viewBox="0 0 30 18"><path d="M2 14l6.5-10 6.5 10 6.5-10L28 14"/></svg></button></div><div class="cap2">ONDA</div></div>
             <div class="sel"><div class="seg"><button id="o2Dn">−</button><span class="octv" id="o2V">0</span><button id="o2Up">+</button></div><div class="cap2">OITAVA ±</div></div>
           </div>
           <div id="sec_osc2" class="ctrls"></div>
-          <div class="sel"><div class="seg" data-key="sync" data-num><button data-v="1" data-toggle class="txt">SYNC</button></div><div class="cap2">COM OSC 1</div></div>
+          <div class="sel"><div class="seg lever" data-key="sync" data-num><button data-v="1" class="txt">ON</button><button data-v="0" class="txt">OFF</button></div><div class="cap2">SYNC</div></div>
         </div></div>
         <div class="sec"><h2>ENV. AFINAÇÃO</h2><div id="sec_penv" class="ctrls"></div></div>
         <div class="sec"><h2>SAÍDA</h2><div class="ctrls">
@@ -268,17 +290,17 @@
       <div class="sections">
         <div class="sec"><h2>MIXER</h2><div class="ctrls">
           <div id="sec_mix" class="ctrls"></div>
-          <div class="sel"><div class="seg col" data-key="sw" data-num><button data-v="0" class="txt">SENO</button><button data-v="1" class="txt">QUAD −1</button></div><div class="cap2">TIPO DO SUB</div></div>
+          <div class="sel"><div class="seg lever" data-key="sw" data-num><button data-v="0" class="txt">SENO</button><button data-v="1" class="txt">QUAD</button></div><div class="cap2">SUB</div></div>
         </div></div>
         <div class="sec"><h2>FILTRO</h2><div class="ctrls">
           <div id="sec_flt" class="ctrls"></div>
-          <div class="sel"><div class="seg" data-key="pol" data-num><button data-v="1" class="txt nar">6</button><button data-v="2" class="txt nar">12</button><button data-v="3" class="txt nar">18</button><button data-v="4" class="txt nar">24</button></div><div class="cap2">dB / OIT</div></div>
+          <div class="sel"><div class="seg lever" data-key="pol" data-num><button data-v="1" class="txt nar">6</button><button data-v="2" class="txt nar">12</button><button data-v="3" class="txt nar">18</button><button data-v="4" class="txt nar">24</button></div><div class="cap2">dB / OIT</div></div>
         </div></div>
       </div>
 
       <div class="sections">
         <div class="sec"><h2>LFO</h2><div class="ctrls">
-          <div class="sel"><div class="seg" data-key="lwv">
+          <div class="sel"><div class="seg lever" data-key="lwv">
             <button data-v="triangle" title="Triângulo"><svg viewBox="0 0 30 18"><path d="M2 14l6.5-10 6.5 10 6.5-10L28 14"/></svg></button>
             <button data-v="square" title="Quadrada"><svg viewBox="0 0 30 18"><path d="M2 14V4h9v10h9V4h8"/></svg></button>
           </div><div class="cap2">ONDA</div></div>
