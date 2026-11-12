@@ -48,13 +48,7 @@
     padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
   .body{flex:1;min-width:0;display:flex;flex-direction:column;background:#0c0d0e}
 
-  /* madeira */
-  .cheek{flex:0 0 var(--cheek);position:relative;
-    background:
-      linear-gradient(90deg,rgba(0,0,0,.55) 0,rgba(0,0,0,0) 22%,rgba(255,225,180,.20) 48%,rgba(0,0,0,0) 72%,rgba(0,0,0,.6) 100%),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='900' preserveAspectRatio='none'><filter id='w' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='0.32 0.006' numOctaves='5' seed='11'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.07  0 0 0 0 0.02  2.6 0 0 0 -0.75'/></filter><filter id='p' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='0.9 0.05' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.04  0 0 0 0 0.01  0.9 0 0 0 -0.38'/></filter><rect width='100%' height='100%' fill='%238b5427'/><rect width='100%' height='100%' filter='url(%23w)'/><rect width='100%' height='100%' filter='url(%23p)'/></svg>") center/100% 100%,
-      #6b3f1f;
-    box-shadow:inset 0 2px 2px rgba(255,220,170,.35),inset 0 -3px 4px rgba(0,0,0,.6)}
+  .cheek{flex:0 0 var(--cheek);position:relative}
   .cheek::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 18%,rgba(0,0,0,0) 80%,rgba(0,0,0,.35))}
 
   /* alumínio escovado */
@@ -275,7 +269,7 @@
         <div class="brand"><svg class="wordmark" viewBox="0 0 540 160" role="img" aria-label="AURA"><g fill="none" stroke="#1b1d20" stroke-width="22"><polyline points="20,148 70,16 120,148"/><path d="M160 16 V96 a40 40 0 0 0 80 0 V16"/><path d="M290 148 V27 H337 a32 32 0 0 1 0 64 H290 M334 91 L378 148"/><polyline points="420,148 470,16 520,148"/></g><g fill="none" stroke="#E8890C" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M40 104 C 52 84, 58 84, 70 104 S 88 124, 100 104"/><path d="M440 108 H456 V92 H484 V108 H500"/></g></svg><span>SYNTH BASS</span></div>
         <div class="pnav">
           <button id="pPrev" class="btn" aria-label="Preset anterior">◀</button>
-          <div class="oled" id="oled" role="button" aria-label="Abrir lista de presets">
+          <div class="oled" id="oled" role="button" tabindex="0" aria-label="Abrir lista de presets">
             <canvas id="scope" width="192" height="96"></canvas>
             <div class="txt mono"><b id="oBig">01 DEEP SUB BASS</b><span id="oSub">TOQUE NA TELA PARA LIGAR O ÁUDIO</span></div>
           </div>
@@ -295,6 +289,7 @@
             <div class="sel"><div class="seg"><button id="octDn">−</button><span class="octv" id="octV">-1</span><button id="octUp">+</button></div><div class="cap2">OITAVA</div></div>
           </div>
           <div id="sec_osc" class="ctrls"></div>
+          <div class="sel"><div class="seg lever" data-key="leg" data-num><button data-v="1" class="txt">ON</button><button data-v="0" class="txt">OFF</button></div><div class="cap2">LEGATO</div></div>
         </div></div>
         <div class="sec"><h2>OSCILADOR 2</h2><div class="ctrls">
           <div class="stack">
@@ -394,16 +389,27 @@
   const DEF = {oct:-1, wave:'square', pw1:0.5, lvl:0.75, w2:'sawtooth', pw2:0.5, l2:0, d2:0, o2:0, sync:0, sub:0, sw:0, nz:0,
                cut:0.5, res:0, fenv:0, kt:0, drv:0, pol:4, glide:0, pa:0, pd:0.15,
                lr:5.5, lwv:'triangle', lp:0, lf:0, lw:0,
-               fa:0.002, fd:0.3, fs:0, fr:0.2, a:0.004, d:0.3, s:1, r:0.1, vol:1.3};
+               fa:0.002, fd:0.3, fs:0, fr:0.2, a:0.004, d:0.3, s:1, r:0.1, leg:1, vol:1.3};
   const PKEYS = Object.keys(DEF);
+  // limites de cada parâmetro: qualquer preset (de fábrica, salvo ou importado) passa por aqui antes de chegar ao motor de som
+  const LIM = {pw1:[0.05,0.5], pw2:[0.05,0.5], lvl:[0,1], l2:[0,1], sub:[0,1], nz:[0,1], cut:[0,1], res:[0,1], kt:[0,1], drv:[0,1], fs:[0,1], s:[0,1], lw:[0,1],
+               d2:[-7,7], fenv:[0,4], glide:[0,0.4], pa:[0,48], pd:[0.01,1.5], lr:[0.1,30], lp:[0,12], lf:[0,3],
+               fa:[0.002,1], a:[0.002,1], fd:[0.02,2], d:[0.02,2], fr:[0.02,2], r:[0.02,2], vol:[0,3]};
+  const LIMI = {oct:[-3,1], o2:[-2,3], sync:[0,1], sw:[0,1], leg:[0,1], pol:[1,4]};
+  const ENUM = {wave:['square','sawtooth','triangle'], w2:['square','sawtooth','triangle'], lwv:['triangle','square']};
   function norm(p){
     const o = Object.assign({}, DEF, p);
     if(p.fa===undefined && p.fx===undefined){ o.fa=o.a; o.fd=o.d; o.fs=o.s; o.fr=o.r; }   // presets de um envelope só
     if(p.fx===0){ o.fa=o.a; o.fd=o.d; o.fs=o.s; o.fr=o.r; }
-    if(p.bt){ o.d2 = +(o.d2 + 12*Math.log2((65+p.bt)/65)).toFixed(2); }                       // batimento antigo vira desafinação
+    if(p.bt){ o.d2 = +(+o.d2 + 12*Math.log2((65+p.bt)/65)).toFixed(2); }                      // batimento antigo vira desafinação
     if(o.pol!==1 && o.pol!==2 && o.pol!==3 && o.pol!==4) o.pol = o.pol<=2 ? 2 : 4;
     delete o.fx; delete o.bt;
-    return o;
+    for(const k in LIM){ const v=(o[k]==null||o[k]==='')?NaN:+o[k]; o[k] = Number.isFinite(v) ? Math.min(LIM[k][1],Math.max(LIM[k][0],v)) : DEF[k]; }
+    for(const k in LIMI){ const v=(o[k]==null||o[k]==='')?NaN:Math.round(+o[k]); o[k] = Number.isFinite(v) ? Math.min(LIMI[k][1],Math.max(LIMI[k][0],v)) : DEF[k]; }
+    for(const k in ENUM){ if(!ENUM[k].includes(o[k])) o[k]=DEF[k]; }
+    o.name = String(o.name==null?'':o.name).trim().toUpperCase().slice(0,18) || 'SEM NOME';
+    const out={name:o.name}; PKEYS.forEach(k=>out[k]=o[k]); if(p.factory) out.factory=true;       // só as chaves conhecidas seguem adiante
+    return out;
   }
   const F = p => Object.assign(norm(p), {factory:true});
   const FACTORY = [
@@ -413,119 +419,120 @@
     F({name:'MOOG-DIX',          oct:-2, wave:'square', lvl:1.0, sub:0, cut:0.0735, fenv:0.94, kt:0.667, glide:0, a:0.004, d:0.25, s:0.59, r:0.25, vol:1.68}),
     F({name:'CHURCH SYNTH BASS', oct:-2, wave:'square', lvl:1.0, sub:0, cut:0.0560, fenv:1.04, kt:0.667, glide:0, a:0.002, d:0.25, s:0.60, r:0.25, vol:1.69}),
     // importados de presets do Moog Sub Phatty (.syx), convertidos por aproximação
-    F({name:"CRIMINAL", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"square", pw2:0.41, l2:0.51, d2:2.64, o2:0, sync:1, nz:0.0, cut:0.471, res:0.11, fenv:2.91, kt:0.5, drv:0.03, pol:4, glide:0, a:0.002, d:0.741, s:0.47, r:0.045, fa:0.002, fd:0.443, fs:0.0, fr:0.516, vol:1.42}),
-    F({name:"DSTYGE", oct:-1, wave:"square", pw1:0.2, lvl:0.65, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.03, o2:0, sync:0, nz:0.0, cut:0.34, res:0.2, fenv:2.59, kt:0.45, drv:0.07, pol:4, glide:0, a:0.002, d:1.677, s:1.0, r:0.064, fa:0.002, fd:0.775, fs:0.18, fr:1.278, vol:1.43}),
-    F({name:"DRUM BASS", oct:-1, wave:"square", pw1:0.5, lvl:0.66, sub:0.0, sw:1, w2:"square", pw2:0.49, l2:0.64, d2:0.06, o2:0, sync:1, nz:0.0, cut:0.433, res:0.0, fenv:1.78, kt:0.29, drv:0.36, pol:3, glide:0, a:0.002, d:0.743, s:1.0, r:0.041, fa:0.002, fd:0.037, fs:0.0, fr:0.659, vol:1.47}),
-    F({name:"FUNKYDETUNE", oct:-1, wave:"square", pw1:0.46, lvl:0.73, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.46, d2:0.28, o2:1, sync:0, nz:0.0, cut:0.406, res:0.47, fenv:3.59, kt:0.71, drv:0.17, pol:4, glide:0, a:0.002, d:1.507, s:1.0, r:0.093, fa:0.002, fd:0.646, fs:0.0, fr:0.063, vol:1.21}),
-    F({name:"HELP ME", oct:-1, wave:"square", pw1:0.45, lvl:0.74, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.39, d2:0.0, o2:1, sync:0, nz:0.0, cut:0.302, res:0.23, fenv:0, kt:0.33, drv:0.22, pol:4, glide:0, a:0.002, d:1.672, s:1.0, r:0.071, fa:0.002, fd:0.406, fs:0.0, fr:0.226, vol:1.33}),
-    F({name:"HIDEAWAY", oct:-1, wave:"square", pw1:0.46, lvl:0.69, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.49, d2:-0.33, o2:0, sync:1, nz:0.0, cut:0.101, res:0.0, fenv:3.59, kt:0.27, drv:0.18, pol:3, glide:0, a:0.002, d:1.276, s:1.0, r:0.604, fa:0.002, fd:0.67, fs:0.0, fr:0.687, vol:1.54}),
-    F({name:"OMEN", oct:0, wave:"square", pw1:0.46, lvl:0.0, sub:0.78, sw:1, w2:"square", pw2:0.46, l2:0.5, d2:0.18, o2:-1, sync:0, nz:0.0, cut:0.365, res:0.28, fenv:3.33, kt:1.0, drv:0.0, pol:4, glide:0, a:0.013, d:0.74, s:1.0, r:0.544, fa:0.035, fd:0.643, fs:0.0, fr:0.358, vol:1.55}),
-    F({name:"P-NEL", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.88, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.07, o2:1, sync:0, nz:0.0, cut:0.312, res:0.0, fenv:1.2, kt:0.37, drv:0.05, pol:4, glide:0, a:0.003, d:2, s:1.0, r:0.041, fa:0.002, fd:0.849, fs:0.17, fr:0.058, vol:1.57}),
-    F({name:"PALM TREES", oct:-1, wave:"square", pw1:0.45, lvl:0.6, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.48, d2:0.0, o2:1, sync:0, nz:0.0, cut:0, res:0.42, fenv:4, kt:0.31, drv:0.17, pol:4, glide:0, a:0.015, d:1.254, s:0.62, r:0.206, fa:0.034, fd:0.231, fs:0.46, fr:0.254, vol:1.31}),
-    F({name:"PRAY4ME", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.64, sub:0.0, sw:1, w2:"square", pw2:0.49, l2:0.55, d2:0.29, o2:0, sync:1, nz:0.0, cut:0.489, res:0.0, fenv:2.97, kt:0.29, drv:0.27, pol:2, glide:0, a:0.002, d:2, s:0.54, r:2, fa:0.002, fd:2, fs:0.0, fr:2, vol:1.22}),
-    F({name:"SOFT808", oct:-1, wave:"square", pw1:0.46, lvl:0.68, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.0, o2:0, sync:0, nz:0.0, cut:0.324, res:0.53, fenv:0, kt:1, drv:0.24, pol:4, glide:0, a:0.003, d:0.568, s:1.0, r:0.819, fa:0.002, fd:0.026, fs:0.0, fr:0.02, vol:1.22}),
-    F({name:"SQAURE BOUNCE", oct:-1, wave:"square", pw1:0.46, lvl:0.79, sub:0.0, sw:1, w2:"square", pw2:0.45, l2:0.0, d2:0.12, o2:0, sync:0, nz:0.0, cut:0, res:0.0, fenv:3.18, kt:0.29, drv:0.18, pol:4, glide:0, a:0.002, d:1.86, s:0.0, r:1.783, fa:0.002, fd:1.57, fs:0.0, fr:1.691, vol:1.44}),
-    F({name:"SQUARE 808", oct:-1, wave:"square", pw1:0.45, lvl:0.71, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.51, d2:0.46, o2:0, sync:0, nz:0.0, cut:0.609, res:0.0, fenv:1.52, kt:0.31, drv:0.22, pol:2, glide:0, a:0.002, d:2, s:1.0, r:0.027, fa:0.002, fd:0.044, fs:0.0, fr:0.111, vol:1.36}),
-    F({name:"SQUARE SUB", oct:-1, wave:"square", pw1:0.46, lvl:0.53, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.52, d2:0.19, o2:0, sync:0, nz:0.0, cut:0.366, res:0.0, fenv:0, kt:0.31, drv:0.0, pol:4, glide:0, a:0.015, d:2, s:1.0, r:0.042, fa:0.002, fd:0.051, fs:0.0, fr:1.846, vol:1.53}),
-    F({name:"SUB SWEEPER", oct:-1, wave:"square", pw1:0.46, lvl:0.0, sub:1, sw:0, w2:"square", pw2:0.47, l2:0.0, d2:0.02, o2:1, sync:0, nz:0.0, cut:0.45, res:0, fenv:0, kt:0, drv:0, pol:4, glide:0, a:0.107, d:1.68, s:1.0, r:2, fa:0.107, fd:1.68, fs:1.0, fr:2, vol:1.64, pa:18.6, pd:1.5}),
-    F({name:"TAURUS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.66, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.46, d2:0.12, o2:0, sync:0, nz:0.0, cut:0.466, res:0.0, fenv:3.58, kt:0.35, drv:0.16, pol:4, glide:0, a:0.059, d:0.096, s:1.0, r:2, fa:0.002, fd:2, fs:0.0, fr:2, vol:1.4}),
-    F({name:"THE TIME", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"square", pw2:0.28, l2:0.38, d2:0.04, o2:0, sync:0, nz:0.0, cut:0.516, res:0.0, fenv:1.27, kt:0.5, drv:0.03, pol:4, glide:0, a:0.002, d:0.741, s:1.0, r:0.045, fa:0.002, fd:0.901, fs:0.0, fr:0.516, vol:1.43}),
-    F({name:"UNO BASS", oct:-1, wave:"square", pw1:0.47, lvl:0.69, sub:0.0, sw:1, w2:"square", pw2:0.43, l2:0.52, d2:1.71, o2:0, sync:1, nz:0.0, cut:0.238, res:0.0, fenv:2.28, kt:0.27, drv:0.08, pol:4, glide:0, a:0.002, d:0.74, s:1.0, r:1.339, fa:0.002, fd:0.421, fs:0.0, fr:0.661, vol:1.41}),
-    F({name:"WATCH YO STEP", oct:-1, wave:"square", pw1:0.45, lvl:0.71, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.0, d2:0.14, o2:0, sync:0, nz:0.0, cut:0.246, res:0.37, fenv:2.16, kt:0.35, drv:0.15, pol:4, glide:0, a:0.002, d:1.672, s:1.0, r:0.555, fa:0.043, fd:0.783, fs:0.24, fr:0.586, vol:1.38}),
-    F({name:"WORK IT OUT", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.56, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.0, d2:0.0, o2:-1, sync:0, nz:0.0, cut:0.421, res:0.11, fenv:2.95, kt:0.33, drv:0.0, pol:4, glide:0, a:0.002, d:1.674, s:1.0, r:0.031, fa:0.002, fd:0.505, fs:0.0, fr:0.177, vol:2.2}),
-    F({name:"24K MAGIC", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.6, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.51, d2:0.11, o2:1, sync:0, nz:0.0, cut:0.653, res:0.0, fenv:2.81, kt:0.32, drv:0.14, pol:4, glide:0, a:0.002, d:1.914, s:1.0, r:0.031, fa:0.002, fd:0.626, fs:0.0, fr:0.89, vol:1.39}),
-    F({name:"ABSENCE", oct:-1, wave:"square", pw1:0.45, lvl:0.52, sub:0.0, sw:1, w2:"square", pw2:0.45, l2:0.51, d2:0.33, o2:0, sync:0, nz:0.0, cut:0.31, res:0.23, fenv:4, kt:0.35, drv:0.04, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.839, fa:0.002, fd:2, fs:0.0, fr:0.652, vol:1.43}),
-    F({name:"ALL THE STARS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.55, d2:0.24, o2:0, sync:0, nz:0.0, cut:0.325, res:0.3, fenv:2.39, kt:0.45, drv:0.15, pol:4, glide:0, a:0.002, d:1.672, s:1.0, r:0.845, fa:0.002, fd:1.548, fs:0.23, fr:1.275, vol:1.24}),
-    F({name:"BOOGIE ON", oct:-1, wave:"triangle", pw1:0.5, lvl:0.6, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.32, d2:0.0, o2:1, sync:0, nz:0.0, cut:0.581, res:0.1, fenv:3.04, kt:0.23, drv:0.0, pol:4, glide:0, a:0.002, d:1.671, s:1.0, r:0.041, fa:0.011, fd:0.875, fs:0.0, fr:2, vol:1.8}),
-    F({name:"ORGAN BASS 2", oct:-1, wave:"triangle", pw1:0.5, lvl:0.66, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.43, d2:2.29, o2:2, sync:1, nz:0.0, cut:0.339, res:0.0, fenv:2.95, kt:0.24, drv:0.2, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.082, fa:0.002, fd:0.604, fs:0.0, fr:0.889, vol:1.35}),
-    F({name:"OVERGROWN", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.6, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.57, d2:0.14, o2:0, sync:0, nz:0.0, cut:0.34, res:0.0, fenv:1.01, kt:0.5, drv:0.06, pol:4, glide:0, a:0.003, d:1.671, s:1.0, r:1.074, fa:0.002, fd:0.95, fs:0.0, fr:1.22, vol:1.45}),
-    F({name:"PYT BASS", oct:-2, wave:"square", pw1:0.45, lvl:0.57, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.07, o2:1, sync:0, nz:0.0, cut:0.249, res:0.3, fenv:2.81, kt:0.46, drv:0.0, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.048, fa:0.002, fd:0.526, fs:0.13, fr:0.653, vol:1.5}),
-    F({name:"PHAT SAWS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.69, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.6, d2:0.18, o2:1, sync:0, nz:0.0, cut:0.674, res:0.0, fenv:1.06, kt:0.27, drv:0.08, pol:4, glide:0, a:0.002, d:0.741, s:1.0, r:0.04, fa:0.011, fd:0.707, fs:0.0, fr:0.661, vol:1.34}),
-    F({name:"POTATOHEAD", oct:-1, wave:"square", pw1:0.34, lvl:0.55, sub:0.0, sw:1, w2:"square", pw2:0.31, l2:0.54, d2:0.11, o2:0, sync:0, nz:0.0, cut:0.352, res:0.0, fenv:2.95, kt:0.24, drv:0.0, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.027, fa:0.002, fd:0.371, fs:0.0, fr:0.699, vol:1.45}),
-    F({name:"ROOFTOPS", oct:-1, wave:"square", pw1:0.45, lvl:0.65, sub:0.0, sw:1, w2:"square", pw2:0.41, l2:0.45, d2:1.99, o2:0, sync:1, nz:0.0, cut:0.359, res:0.0, fenv:3.61, kt:0.48, drv:0.2, pol:4, glide:0, a:0.002, d:1.506, s:1.0, r:0.292, fa:0.002, fd:0.555, fs:0.29, fr:0.635, vol:1.39}),
-    F({name:"SYBDTTG", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.64, sub:0.0, sw:1, w2:"square", pw2:0.44, l2:0.0, d2:-0.15, o2:0, sync:0, nz:0.0, cut:0.395, res:0.19, fenv:2.3, kt:1, drv:0.08, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.038, fa:0.002, fd:0.497, fs:0.0, fr:0.857, vol:1.59}),
-    F({name:"SHOFUKAN", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.64, sub:0.66, sw:1, w2:"sawtooth", pw2:0.5, l2:0.66, d2:0.1, o2:0, sync:0, nz:0.0, cut:0.643, res:0.0, fenv:1.0, kt:0.23, drv:0.12, pol:3, glide:0, a:0.002, d:1.278, s:1.0, r:0.042, fa:0.025, fd:0.557, fs:0.0, fr:1.349, vol:1.32}),
-    F({name:"SLUMLORD", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.66, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.11, o2:0, sync:0, nz:0.0, cut:0.34, res:0.15, fenv:1.03, kt:0.39, drv:0.15, pol:4, glide:0, a:0.002, d:2, s:0.39, r:0.063, fa:0.005, fd:0.974, fs:0.22, fr:0.652, vol:1.54}),
-    F({name:"SQUARE KICK", oct:-1, wave:"square", pw1:0.46, lvl:0.71, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.68, d2:0.13, o2:0, sync:1, nz:0.0, cut:0, res:0.42, fenv:3.61, kt:0.42, drv:0.04, pol:4, glide:0, a:0.002, d:1.765, s:0.0, r:1.918, fa:0.002, fd:1.017, fs:0.0, fr:0.769, vol:1.26}),
-    F({name:"SUB BASS", oct:-2, wave:"square", pw1:0.45, lvl:0.0, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:1.0, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.222, res:0.85, fenv:0, kt:1, drv:0.24, pol:2, glide:0, a:0.006, d:2, s:1.0, r:0.045, fa:0.002, fd:0.058, fs:0.0, fr:0.888, vol:1.36}),
-    F({name:"THEREALFREE", oct:-1, wave:"square", pw1:0.45, lvl:0.52, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.0, o2:1, sync:1, nz:0.0, cut:0.439, res:0.16, fenv:2.62, kt:0.71, drv:0.17, pol:4, glide:0, a:0.002, d:1.508, s:1.0, r:0.093, fa:0.002, fd:0.647, fs:0.0, fr:0.063, vol:1.41}),
-    F({name:"VOICES", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.78, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.66, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.432, res:0.34, fenv:2.5, kt:1, drv:0.16, pol:3, glide:0, a:0.002, d:1.673, s:1.0, r:0.354, fa:0.002, fd:0.677, fs:0.0, fr:0.178, vol:1.33}),
-    F({name:"WAYBACKHOME", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.61, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.64, d2:0.07, o2:1, sync:0, nz:0.0, cut:0.439, res:0.0, fenv:3.18, kt:0.0, drv:0.11, pol:4, glide:0, a:0.002, d:1.671, s:1.0, r:0.056, fa:0.006, fd:0.58, fs:1.0, fr:0.136, vol:1.36}),
-    F({name:"WOLF", oct:-2, wave:"square", pw1:0.45, lvl:0.63, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.49, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.644, res:0.0, fenv:0, kt:0.15, drv:0.15, pol:3, glide:0, a:0.002, d:2, s:0.0, r:2, fa:0.002, fd:0.101, fs:1.0, fr:1.984, vol:1.62}),
-    F({name:"AIN'T NOBODY", oct:-1, wave:"square", pw1:0.25, lvl:0.59, sub:0.0, sw:1, w2:"square", pw2:0.24, l2:0.23, d2:0.04, o2:1, sync:0, nz:0.0, cut:0.391, res:0.0, fenv:2.93, kt:0.61, drv:0.0, pol:4, glide:0, a:0.002, d:1.674, s:1.0, r:0.066, fa:0.002, fd:0.524, fs:0.0, fr:0.177, vol:1.51}),
-    F({name:"BINKY", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.7, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.62, d2:0.05, o2:1, sync:0, nz:0.0, cut:0.587, res:0.0, fenv:0, kt:0.46, drv:0.25, pol:3, glide:0, a:0.002, d:0.315, s:1.0, r:0.02, fa:0.041, fd:0.748, fs:0.0, fr:2, vol:1.27}),
-    F({name:"BONSAI", oct:-2, wave:"square", pw1:0.42, lvl:0.63, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.64, d2:0.15, o2:0, sync:0, nz:0.0, cut:0.392, res:0.3, fenv:2.38, kt:1, drv:0.22, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.038, fa:0.002, fd:0.499, fs:0.0, fr:0.889, vol:1.26}),
-    F({name:"BUZZY808", oct:-1, wave:"square", pw1:0.45, lvl:0.73, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.0, d2:1.21, o2:1, sync:1, nz:0.0, cut:0.329, res:0.53, fenv:0, kt:1, drv:0.23, pol:1, glide:0, a:0.002, d:1.03, s:0.0, r:0.974, fa:0.002, fd:0.02, fs:0.0, fr:0.02, vol:0.95}),
-    F({name:"CHAMELEON", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.68, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.43, d2:0.12, o2:0, sync:0, nz:0.0, cut:0.254, res:0.4, fenv:2.38, kt:0.0, drv:1.0, pol:3, glide:0, a:0.002, d:0.416, s:1.0, r:0.283, fa:0.002, fd:0.405, fs:0.0, fr:0.457, vol:1.28}),
-    F({name:"DIRTY DIGITAL", oct:0, wave:"square", pw1:0.45, lvl:0.79, sub:0.21, sw:1, w2:"square", pw2:0.46, l2:0.64, d2:4.29, o2:-1, sync:1, nz:0.0, cut:0.348, res:0.36, fenv:0.25, kt:0.33, drv:0.09, pol:3, glide:0, a:0.002, d:1.677, s:1.0, r:0.046, fa:0.002, fd:0.32, fs:0.0, fr:0.226, vol:1.15}),
-    F({name:"DRIPPY", oct:-1, wave:"square", pw1:0.5, lvl:0.69, sub:0.0, sw:1, w2:"square", pw2:0.31, l2:0.53, d2:0.17, o2:1, sync:0, nz:0.0, cut:0.576, res:0.16, fenv:4, kt:0.81, drv:0.07, pol:4, glide:0, a:0.002, d:0.632, s:1.0, r:0.02, fa:0.031, fd:0.549, fs:0.1, fr:0.031, vol:1.38}),
-    F({name:"FEEL4U", oct:-1, wave:"square", pw1:0.27, lvl:0.62, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.07, o2:1, sync:0, nz:0.0, cut:0.398, res:0.0, fenv:3.55, kt:0.37, drv:0.0, pol:4, glide:0, a:0.002, d:1.673, s:1.0, r:0.066, fa:0.002, fd:0.289, fs:0.0, fr:0.178, vol:1.35}),
-    F({name:"FUNKY SAWS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.46, d2:0.21, o2:1, sync:0, nz:0.0, cut:0.406, res:0.47, fenv:3.59, kt:0.48, drv:0.26, pol:4, glide:0, a:0.002, d:1.507, s:1.0, r:0.078, fa:0.002, fd:0.646, fs:0.0, fr:0.039, vol:1.17}),
-    F({name:"HARD808", oct:-1, wave:"triangle", pw1:0.5, lvl:0.69, sub:0.0, sw:1, w2:"square", pw2:0.45, l2:0.0, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.329, res:0.53, fenv:0, kt:1, drv:0.16, pol:1, glide:0, a:0.002, d:1.03, s:0.0, r:0.982, fa:0.002, fd:0.02, fs:0.0, fr:0.02, vol:1.59}),
-    F({name:"HOUSE STAB", oct:0, wave:"square", pw1:0.45, lvl:0.0, sub:0.74, sw:1, w2:"square", pw2:0.46, l2:0.0, d2:0.19, o2:-1, sync:0, nz:0.0, cut:0.277, res:0.37, fenv:2.58, kt:0.51, drv:0.09, pol:4, glide:0, a:0.002, d:1.673, s:1.0, r:0.061, fa:0.002, fd:0.321, fs:0.0, fr:0.226, vol:1.55}),
-    F({name:"JUDAS", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.83, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.84, d2:0.17, o2:1, sync:0, nz:0.0, cut:0.454, res:0.0, fenv:1.67, kt:0.21, drv:0.28, pol:4, glide:0, a:0.002, d:2, s:0.5, r:2, fa:0.002, fd:2, fs:0.0, fr:0.89, vol:1.38}),
-    F({name:"LFTC", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.54, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.39, d2:0.07, o2:0, sync:0, nz:0.0, cut:0.448, res:0.43, fenv:1.68, kt:1, drv:0.0, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.022, fa:0.002, fd:1.706, fs:0.12, fr:1.727, vol:1.49}),
-    F({name:"LATCH", oct:0, wave:"square", pw1:0.45, lvl:0.0, sub:0.74, sw:1, w2:"square", pw2:0.46, l2:0.34, d2:0.19, o2:-1, sync:0, nz:0.0, cut:0, res:0.0, fenv:1.94, kt:0.09, drv:0.09, pol:4, glide:0, a:0.002, d:1.673, s:1.0, r:0.452, fa:0.002, fd:0.743, fs:0.0, fr:0.819, vol:1.58}),
-    F({name:"MOLECULES", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.69, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.56, d2:0.25, o2:1, sync:0, nz:0.0, cut:0.259, res:0.23, fenv:2.35, kt:0.38, drv:0.63, pol:4, glide:0, a:0.002, d:1.673, s:1.0, r:0.669, fa:0.002, fd:0.6, fs:0.0, fr:0.49, vol:1.36}),
-    F({name:"OK THEN", oct:0, wave:"square", pw1:0.46, lvl:0.36, sub:0.63, sw:1, w2:"square", pw2:0.46, l2:0.46, d2:0.11, o2:-1, sync:0, nz:0.0, cut:0, res:0.29, fenv:3.78, kt:0.27, drv:0.12, pol:4, glide:0, a:0.002, d:0.831, s:1.0, r:0.415, fa:0.023, fd:0.596, fs:0.66, fr:0.985, vol:1.24}),
-    F({name:"THRILLER", oct:0, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.64, sw:1, w2:"sawtooth", pw2:0.5, l2:0.83, d2:0.08, o2:-1, sync:0, nz:0.0, cut:0.308, res:0.33, fenv:2.99, kt:0.36, drv:0.04, pol:4, glide:0, a:0.002, d:0.703, s:0.5, r:0.066, fa:0.002, fd:0.468, fs:0.15, fr:0.652, vol:1.21}),
-    F({name:"UK GARAGE", oct:-1, wave:"square", pw1:0.45, lvl:0.71, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.0, d2:0.0, o2:2, sync:1, nz:0.0, cut:0.246, res:0.35, fenv:2.16, kt:0.33, drv:0.15, pol:4, glide:0, a:0.002, d:1.672, s:1.0, r:0.071, fa:0.002, fd:0.783, fs:0.24, fr:0.532, vol:1.36}),
-    F({name:"WHAT I LIKE", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.59, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.32, d2:0.0, o2:1, sync:0, nz:0.0, cut:0.443, res:0.0, fenv:2.76, kt:0.62, drv:0.14, pol:4, glide:0, a:0.002, d:1.916, s:1.0, r:0.031, fa:0.002, fd:0.627, fs:0.0, fr:0.891, vol:1.46}),
-    F({name:"WILLING&ABLE", oct:0, wave:"square", pw1:0.46, lvl:0.0, sub:0.77, sw:1, w2:"square", pw2:0.46, l2:0.26, d2:0.18, o2:-1, sync:0, nz:0.0, cut:0.12, res:0.32, fenv:2.78, kt:0.5, drv:0.0, pol:3, glide:0, a:0.013, d:0.74, s:1.0, r:0.887, fa:0.035, fd:0.706, fs:0.0, fr:0.622, vol:1.46}),
-    F({name:"BBM", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.6, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.35, d2:-0.08, o2:1, sync:0, nz:0.0, cut:0.383, res:0.21, fenv:2.6, kt:0.42, drv:0.17, pol:4, glide:0, a:0.002, d:0.741, s:1.0, r:0.038, fa:0.002, fd:0.972, fs:0.16, fr:0.726, vol:1.35}),
-    F({name:"BABY'S EYES", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.69, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.43, d2:0.09, o2:0, sync:0, nz:0.0, cut:0.191, res:0.51, fenv:2.73, kt:0.43, drv:0.19, pol:4, glide:0, a:0.002, d:0.096, s:1.0, r:0.055, fa:0.002, fd:2, fs:0.26, fr:0.766, vol:1.23}),
-    F({name:"BELL BASS", oct:-1, wave:"square", pw1:0.45, lvl:0.58, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.57, d2:6.67, o2:2, sync:0, nz:0.0, cut:0.165, res:0.0, fenv:2.07, kt:0.43, drv:0.1, pol:4, glide:0, a:0.003, d:0.928, s:1.0, r:1.541, fa:0.002, fd:1.178, fs:0.31, fr:0.967, vol:1.52}),
-    F({name:"CASCADES", oct:-1, wave:"square", pw1:0.45, lvl:0.31, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.64, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.36, res:0.32, fenv:2.9, kt:0.33, drv:0.11, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.033, fa:0.034, fd:0.226, fs:0.0, fr:0.22, vol:1.52}),
-    F({name:"DEEP KICK", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.0, sub:1, sw:0, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.0, o2:1, sync:0, nz:0.0, cut:0.45, res:0, fenv:0, kt:0, drv:0, pol:4, glide:0, a:0.002, d:1.408, s:0.0, r:1.176, fa:0.002, fd:1.408, fs:0.0, fr:1.176, vol:1.73, pa:29.3, pd:0.624}),
-    F({name:"DISTORTED PWM", oct:-2, wave:"square", pw1:0.47, lvl:0.67, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.62, d2:0.04, o2:1, sync:0, nz:0.0, cut:0.585, res:0.0, fenv:1.84, kt:0.4, drv:0.43, pol:2, glide:0, a:0.002, d:1.912, s:1.0, r:0.031, fa:0.002, fd:2, fs:0.0, fr:0.891, vol:1.29}),
-    F({name:"ESSO BASS", oct:-2, wave:"square", pw1:0.45, lvl:0.68, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.282, res:0.0, fenv:0, kt:0.07, drv:0.15, pol:3, glide:0, a:0.139, d:2, s:1.0, r:0.038, fa:0.002, fd:0.101, fs:1.0, fr:0.111, vol:1.59}),
-    F({name:"HOURGLASS", oct:-1, wave:"square", pw1:0.46, lvl:0.63, sub:0.02, sw:1, w2:"square", pw2:0.46, l2:0.49, d2:0.18, o2:0, sync:0, nz:0.0, cut:0, res:0.0, fenv:3.34, kt:0.5, drv:0.0, pol:4, glide:0, a:0.013, d:0.74, s:1.0, r:0.451, fa:0.056, fd:0.895, fs:0.47, fr:0.516, vol:1.49}),
-    F({name:"HOUSE 5TH", oct:-2, wave:"triangle", pw1:0.5, lvl:0.59, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.49, d2:7.0, o2:2, sync:0, nz:0.0, cut:0, res:0.0, fenv:4, kt:0.44, drv:0.0, pol:4, glide:0, a:0.002, d:1.674, s:1.0, r:0.068, fa:0.002, fd:0.561, fs:0.42, fr:0.927, vol:1.74}),
-    F({name:"I WANNA DANCE", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.48, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.6, d2:0.0, o2:1, sync:0, nz:0.0, cut:0.293, res:0.24, fenv:3.86, kt:0.31, drv:0.17, pol:4, glide:0, a:0.002, d:1.51, s:0.57, r:0.038, fa:0.005, fd:0.309, fs:0.41, fr:0.305, vol:1.4}),
-    F({name:"LEVITATING", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.59, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.44, d2:0.18, o2:0, sync:0, nz:0.0, cut:0, res:0.27, fenv:4, kt:0.46, drv:0.06, pol:4, glide:0, a:0.011, d:1.671, s:1.0, r:0.196, fa:0.051, fd:0.517, fs:0.49, fr:0.273, vol:1.49}),
-    F({name:"MITM", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.63, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.44, d2:0.1, o2:0, sync:0, nz:0.0, cut:0.424, res:0.27, fenv:2.6, kt:0.1, drv:0.16, pol:3, glide:0, a:0.002, d:2, s:1.0, r:0.045, fa:0.002, fd:0.619, fs:0.0, fr:0.889, vol:1.31}),
-    F({name:"MORNING SUN", oct:-1, wave:"triangle", pw1:0.5, lvl:0.53, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.28, d2:0.0, o2:1, sync:1, nz:0.0, cut:0.352, res:0.06, fenv:2.89, kt:0.24, drv:0.0, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.027, fa:0.002, fd:0.499, fs:0.0, fr:0.699, vol:1.79}),
-    F({name:"ORGAN BASS 1", oct:-2, wave:"square", pw1:0.45, lvl:0.64, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.46, d2:-0.02, o2:3, sync:0, nz:0.0, cut:0.338, res:0.0, fenv:2.61, kt:0.34, drv:0.27, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.031, fa:0.002, fd:0.485, fs:0.0, fr:0.889, vol:1.35}),
-    F({name:"OVERTONES", oct:0, wave:"sawtooth", pw1:0.5, lvl:0.89, sub:0.9, sw:1, w2:"square", pw2:0.09, l2:0.91, d2:3.57, o2:0, sync:1, nz:0.0, cut:0.383, res:0.6, fenv:0.16, kt:0.96, drv:0.47, pol:2, glide:0, a:0.002, d:2, s:0.97, r:0.035, fa:0.016, fd:0.525, fs:0.0, fr:2, vol:1.0}),
-    F({name:"SOMD BRIDGE", oct:-1, wave:"sawtooth", pw1:0.5, lvl:1.0, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:1.0, d2:0.14, o2:0, sync:0, nz:0.0, cut:0.445, res:0.0, fenv:0.05, kt:0.31, drv:0.24, pol:4, glide:0, a:0.012, d:2, s:1.0, r:0.022, fa:0.002, fd:0.369, fs:0.0, fr:1.723, vol:1.35}),
-    F({name:"SAW PLUCK", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.53, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.0, d2:0.0, o2:0, sync:1, nz:0.0, cut:0, res:0.06, fenv:4, kt:0.21, drv:0.0, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.87, fa:0.002, fd:0.927, fs:0.0, fr:1.045, vol:2.6}),
-    F({name:"SAWSQUARE", oct:-1, wave:"square", pw1:0.46, lvl:0.52, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.52, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.419, res:0.0, fenv:2.04, kt:0.5, drv:0.17, pol:4, glide:0, a:0.002, d:1.502, s:1.0, r:0.043, fa:0.002, fd:0.646, fs:0.12, fr:0.088, vol:1.67}),
-    F({name:"SUPREME", oct:-1, wave:"square", pw1:0.46, lvl:0.6, sub:0.02, sw:1, w2:"square", pw2:0.46, l2:0.5, d2:0.18, o2:0, sync:0, nz:0.0, cut:0, res:0.21, fenv:4, kt:0.5, drv:0.0, pol:4, glide:0, a:0.013, d:0.74, s:1.0, r:0.257, fa:0.035, fd:0.706, fs:0.51, fr:0.516, vol:1.46}),
-    F({name:"THE ONE", oct:-2, wave:"square", pw1:0.25, lvl:0.6, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.37, d2:0.0, o2:0, sync:0, nz:0.0, cut:0.369, res:0.06, fenv:2.96, kt:0.38, drv:0.06, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.038, fa:0.002, fd:0.38, fs:0.0, fr:0.889, vol:1.68}),
-    F({name:"DX7 BASS", oct:-1, wave:"square", pw1:0.47, lvl:0.76, sub:0.0, sw:1, w2:"square", pw2:0.5, l2:0.61, d2:0.54, o2:1, sync:1, nz:0.0, cut:0.197, res:0.27, fenv:2.86, kt:0.39, drv:0.19, pol:4, glide:0, a:0.002, d:0.169, s:1.0, r:0.039, fa:0.002, fd:0.598, fs:0.31, fr:0.467, vol:1.21}),
-    F({name:"FINESSE", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.66, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.55, d2:0.07, o2:1, sync:0, nz:0.0, cut:0.434, res:0.0, fenv:2.98, kt:0.27, drv:0.16, pol:4, glide:0, a:0.002, d:0.096, s:1.0, r:0.04, fa:0.002, fd:1.104, fs:0.0, fr:2, vol:1.36}),
-    F({name:"FLUTTER BASS", oct:-2, wave:"square", pw1:0.46, lvl:0.7, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.0, d2:0.37, o2:0, sync:0, nz:0.0, cut:0, res:0.0, fenv:3.42, kt:0.56, drv:0.08, pol:4, glide:0, a:0.016, d:2, s:1.0, r:0.502, fa:0.061, fd:1.089, fs:0.0, fr:0.651, vol:1.58}),
-    F({name:"HBFS", oct:-1, wave:"square", pw1:0.45, lvl:0.58, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.66, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.319, res:0.0, fenv:0.01, kt:0.09, drv:0.17, pol:2, glide:0, a:0.002, d:1.509, s:1.0, r:0.023, fa:0.002, fd:0.286, fs:1.0, fr:0.392, vol:1.77}),
-    F({name:"IGNORE", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.31, d2:0.06, o2:0, sync:0, nz:0.0, cut:0.104, res:0.0, fenv:3.99, kt:0.52, drv:0.17, pol:4, glide:0, a:0.012, d:1.278, s:1.0, r:1.141, fa:0.037, fd:0.913, fs:0.16, fr:1.343, vol:1.48}),
-    F({name:"LIMIT2YOURLUV", oct:-1, wave:"square", pw1:0.46, lvl:1.0, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:-0.09, o2:0, sync:0, nz:0.0, cut:0.214, res:0.0, fenv:0, kt:0.73, drv:0.06, pol:4, glide:0, a:0.09, d:1.671, s:1.0, r:0.092, fa:0.002, fd:0.372, fs:1.0, fr:0.275, vol:1.48}),
-    F({name:"MAGNETS VIP", oct:-1, wave:"square", pw1:0.45, lvl:0.53, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.48, d2:0.02, o2:0, sync:1, nz:0.0, cut:0, res:0.0, fenv:4, kt:0.56, drv:0.07, pol:4, glide:0, a:0.002, d:1.677, s:1.0, r:0.783, fa:0.047, fd:1.036, fs:0.0, fr:0.764, vol:1.99}),
-    F({name:"MONTEBOOKER", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.57, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.51, d2:0.12, o2:0, sync:0, nz:0.0, cut:0, res:0.0, fenv:3.52, kt:0.35, drv:0.17, pol:4, glide:0, a:0.002, d:1.509, s:1.0, r:1.007, fa:0.002, fd:0.824, fs:0.53, fr:1.028, vol:1.46}),
-    F({name:"OCTAVE FUNK", oct:-1, wave:"square", pw1:0.46, lvl:0.49, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.5, d2:0.0, o2:1, sync:1, nz:0.0, cut:0.439, res:0.37, fenv:3.25, kt:0.71, drv:0.17, pol:4, glide:0, a:0.002, d:1.507, s:1.0, r:0.093, fa:0.01, fd:0.647, fs:0.0, fr:0.063, vol:1.25}),
-    F({name:"OCTAVE TRACK", oct:-1, wave:"square", pw1:0.46, lvl:0.61, sub:0.0, sw:1, w2:"square", pw2:0.47, l2:0.4, d2:0.0, o2:1, sync:0, nz:0.0, cut:0, res:0.0, fenv:1.28, kt:1, drv:0.08, pol:4, glide:0, a:0.002, d:1.68, s:1.0, r:2, fa:0.002, fd:2, fs:0.0, fr:2, vol:1.64}),
-    F({name:"POPLOCK", oct:-1, wave:"square", pw1:0.46, lvl:0.52, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.49, d2:0.03, o2:1, sync:1, nz:0.0, cut:0.365, res:0.45, fenv:2.76, kt:0.5, drv:0.17, pol:4, glide:0, a:0.002, d:1.502, s:1.0, r:0.043, fa:0.002, fd:0.646, fs:0.12, fr:0.088, vol:1.34}),
-    F({name:"SOMD CHORUS", oct:-1, wave:"square", pw1:0.37, lvl:0.61, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.02, o2:0, sync:1, nz:0.0, cut:0.433, res:0.05, fenv:3.8, kt:0.44, drv:0.07, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.031, fa:0.002, fd:0.548, fs:0.01, fr:1.723, vol:1.69}),
-    F({name:"SOMD VERSE", oct:-1, wave:"square", pw1:0.46, lvl:0.62, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.61, d2:0.14, o2:0, sync:0, nz:0.0, cut:0.384, res:0.0, fenv:2.05, kt:0.31, drv:0.24, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.047, fa:0.002, fd:0.369, fs:0.0, fr:1.721, vol:1.35}),
-    F({name:"SAW LFO", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.73, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.14, o2:0, sync:0, nz:0.0, cut:0.342, res:0.0, fenv:2.79, kt:0.52, drv:0.1, pol:4, glide:0, a:0.002, d:1.277, s:1.0, r:0.035, fa:0.002, fd:2, fs:0.0, fr:1.35, vol:1.54}),
-    F({name:"SLEEPER", oct:-2, wave:"square", pw1:0.5, lvl:0.64, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.0, o2:2, sync:0, nz:0.0, cut:0.549, res:0.0, fenv:0, kt:0.05, drv:0.12, pol:2, glide:0, a:0.002, d:1.278, s:1.0, r:0.042, fa:0.597, fd:0.902, fs:0.0, fr:1.349, vol:1.65}),
-    F({name:"SOFTWAH", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.52, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.0, o2:1, sync:1, nz:0.0, cut:0.382, res:0.14, fenv:2.31, kt:0.5, drv:0.17, pol:4, glide:0, a:0.002, d:1.509, s:1.0, r:0.043, fa:0.005, fd:0.646, fs:0.0, fr:0.087, vol:1.3}),
-    F({name:"SOFT SAW BASS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.5, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.54, d2:-0.23, o2:1, sync:0, nz:0.0, cut:0.172, res:0.0, fenv:2.58, kt:0.38, drv:0.09, pol:4, glide:0, a:0.002, d:2, s:1.0, r:2, fa:0.002, fd:2, fs:0.38, fr:2, vol:1.48}),
-    F({name:"STEVIE BASS", oct:-1, wave:"square", pw1:0.35, lvl:0.68, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.5, d2:0.14, o2:1, sync:1, nz:0.0, cut:0.056, res:0.0, fenv:3.18, kt:0.59, drv:0.21, pol:4, glide:0, a:0.003, d:0.078, s:1.0, r:0.029, fa:0.002, fd:0.797, fs:0.79, fr:0.195, vol:1.44}),
-    F({name:"SUPERPWM", oct:-1, wave:"square", pw1:0.46, lvl:0.51, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.51, d2:0.09, o2:0, sync:0, nz:0.0, cut:0.512, res:0.0, fenv:0, kt:0.31, drv:0.0, pol:2, glide:0, a:0.056, d:1.671, s:1.0, r:1.237, fa:0.002, fd:1.928, fs:0.0, fr:0.783, vol:1.51}),
-    F({name:"TIGHT FUNK", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.52, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.57, d2:0.03, o2:1, sync:0, nz:0.0, cut:0.645, res:0.0, fenv:2.49, kt:0.34, drv:0.0, pol:4, glide:0, a:0.002, d:1.502, s:1.0, r:0.043, fa:0.002, fd:0.487, fs:0.0, fr:0.304, vol:1.49}),
-    F({name:"1 POLE 808", oct:-2, wave:"square", pw1:0.45, lvl:1.0, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.0, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.222, res:0.85, fenv:0, kt:1, drv:0.31, pol:1, glide:0, a:0.002, d:2, s:1.0, r:0.026, fa:0.002, fd:0.058, fs:0.0, fr:0.888, vol:0.85}),
-    F({name:"AT ALL", oct:-2, wave:"square", pw1:0.46, lvl:0.64, sub:0.0, sw:1, w2:"square", pw2:0.44, l2:0.35, d2:1.29, o2:0, sync:1, nz:0.0, cut:0.366, res:0.12, fenv:1.73, kt:0.81, drv:0.08, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.038, fa:0.002, fd:0.499, fs:0.0, fr:0.891, vol:1.49}),
-    F({name:"COSMIC", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.63, d2:0.13, o2:0, sync:0, nz:0.0, cut:0, res:0.03, fenv:4, kt:0.36, drv:0.03, pol:4, glide:0, a:0.002, d:1.5, s:1.0, r:0.347, fa:0.002, fd:0.922, fs:0.0, fr:0.859, vol:1.56}),
-    F({name:"DON'TSTARTNOW", oct:-1, wave:"square", pw1:0.45, lvl:0.57, sub:0.0, sw:1, w2:"square", pw2:0.5, l2:0.59, d2:-0.07, o2:0, sync:1, nz:0.0, cut:0, res:0.13, fenv:4, kt:0.16, drv:0.06, pol:4, glide:0, a:0.002, d:1.673, s:1.0, r:0.092, fa:0.002, fd:0.372, fs:0.42, fr:0.275, vol:1.42}),
-    F({name:"FIRE", oct:-2, wave:"square", pw1:0.46, lvl:0.68, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.6, d2:0.19, o2:0, sync:0, nz:0.0, cut:0, res:0.11, fenv:2.25, kt:0.52, drv:0.19, pol:4, glide:0, a:0.002, d:0.096, s:1.0, r:0.133, fa:0.002, fd:0.41, fs:0.3, fr:0.825, vol:1.4}),
-    F({name:"MEASUREMENTS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.81, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.12, o2:0, sync:0, nz:0.0, cut:0.256, res:0.0, fenv:1.85, kt:0.65, drv:0.06, pol:2, glide:0, a:0.002, d:1.27, s:0.51, r:0.053, fa:0.002, fd:1.137, fs:0.0, fr:1.225, vol:1.56}),
-    F({name:"UP&DOWN", oct:-1, wave:"square", pw1:0.17, lvl:0.66, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.4, d2:-0.06, o2:0, sync:1, nz:0.0, cut:0.353, res:0.0, fenv:3.73, kt:0.27, drv:0.16, pol:4, glide:0, a:0.002, d:0.096, s:1.0, r:0.04, fa:0.002, fd:0.594, fs:0.0, fr:2, vol:1.41})
+    F({name:"CRIMINAL", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"square", pw2:0.41, l2:0.51, d2:2.64, o2:0, sync:1, nz:0.0, cut:0.471, res:0.11, fenv:2.91, kt:0.5, drv:0.03, pol:4, glide:0, a:0.002, d:0.741, s:0.47, r:0.045, fa:0.002, fd:0.443, fs:0.0, fr:0.516, vol:1.38, leg:0}),
+    F({name:"DSTYGE", oct:-1, wave:"square", pw1:0.2, lvl:0.65, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.03, o2:0, sync:0, nz:0.0, cut:0.34, res:0.2, fenv:2.59, kt:0.45, drv:0.07, pol:4, glide:0, a:0.002, d:1.677, s:1.0, r:0.064, fa:0.002, fd:0.775, fs:0.18, fr:1.278, vol:1.36, leg:0}),
+    F({name:"DRUM BASS", oct:-1, wave:"square", pw1:0.5, lvl:0.66, sub:0.0, sw:1, w2:"square", pw2:0.49, l2:0.64, d2:0.06, o2:0, sync:1, nz:0.0, cut:0.433, res:0.0, fenv:1.78, kt:0.29, drv:0.36, pol:3, glide:0, a:0.002, d:0.743, s:1.0, r:0.041, fa:0.002, fd:0.037, fs:0.0, fr:0.659, vol:1.47, leg:0}),
+    F({name:"FUNKYDETUNE", oct:-1, wave:"square", pw1:0.46, lvl:0.73, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.46, d2:0.28, o2:1, sync:0, nz:0.0, cut:0.406, res:0.47, fenv:3.59, kt:0.71, drv:0.17, pol:4, glide:0, a:0.002, d:1.507, s:1.0, r:0.093, fa:0.002, fd:0.646, fs:0.0, fr:0.063, vol:1.17, leg:0}),
+    F({name:"HELP ME", oct:-1, wave:"square", pw1:0.45, lvl:0.74, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.39, d2:0.0, o2:1, sync:0, nz:0.0, cut:0.302, res:0.23, fenv:0, kt:0.33, drv:0.22, pol:4, glide:0, a:0.002, d:1.672, s:1.0, r:0.071, fa:0.002, fd:0.406, fs:0.0, fr:0.226, vol:1.34, leg:0}),
+    F({name:"HIDEAWAY", oct:-1, wave:"square", pw1:0.46, lvl:0.69, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.49, d2:-0.33, o2:0, sync:1, nz:0.0, cut:0.101, res:0.0, fenv:3.59, kt:0.27, drv:0.18, pol:3, glide:0, a:0.002, d:1.276, s:1.0, r:0.604, fa:0.002, fd:0.67, fs:0.0, fr:0.687, vol:1.5, leg:0}),
+    F({name:"OMEN", oct:0, wave:"square", pw1:0.46, lvl:0.0, sub:0.78, sw:1, w2:"square", pw2:0.46, l2:0.5, d2:0.18, o2:-1, sync:0, nz:0.0, cut:0.365, res:0.28, fenv:3.33, kt:1.0, drv:0.0, pol:4, glide:0, a:0.013, d:0.74, s:1.0, r:0.544, fa:0.035, fd:0.643, fs:0.0, fr:0.358, vol:1.55, leg:0}),
+    F({name:"P-NEL", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.88, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.07, o2:1, sync:0, nz:0.0, cut:0.312, res:0.0, fenv:1.2, kt:0.37, drv:0.05, pol:4, glide:0, a:0.003, d:2, s:1.0, r:0.041, fa:0.002, fd:0.849, fs:0.17, fr:0.058, vol:1.57, leg:0}),
+    F({name:"PALM TREES", oct:-1, wave:"square", pw1:0.45, lvl:0.6, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.48, d2:0.0, o2:1, sync:0, nz:0.0, cut:0, res:0.42, fenv:4, kt:0.31, drv:0.17, pol:4, glide:0, a:0.015, d:1.254, s:0.62, r:0.206, fa:0.034, fd:0.231, fs:0.46, fr:0.254, vol:1.23, leg:0}),
+    F({name:"PRAY4ME", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.64, sub:0.0, sw:1, w2:"square", pw2:0.49, l2:0.55, d2:0.29, o2:0, sync:1, nz:0.0, cut:0.489, res:0.0, fenv:2.97, kt:0.29, drv:0.27, pol:2, glide:0, a:0.002, d:2, s:0.54, r:2, fa:0.002, fd:2, fs:0.0, fr:2, vol:1.19, leg:0}),
+    F({name:"SOFT808", oct:-1, wave:"square", pw1:0.46, lvl:0.68, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.0, o2:0, sync:0, nz:0.0, cut:0.324, res:0.53, fenv:0, kt:1, drv:0.24, pol:4, glide:0, a:0.003, d:0.568, s:1.0, r:0.819, fa:0.002, fd:0.026, fs:0.0, fr:0.02, vol:1.25, leg:0}),
+    F({name:"SQAURE BOUNCE", oct:-1, wave:"square", pw1:0.46, lvl:0.79, sub:0.0, sw:1, w2:"square", pw2:0.45, l2:0.0, d2:0.12, o2:0, sync:0, nz:0.0, cut:0, res:0.0, fenv:3.18, kt:0.29, drv:0.18, pol:4, glide:0, a:0.002, d:1.86, s:0.0, r:1.783, fa:0.002, fd:1.57, fs:0.0, fr:1.691, vol:1.41, leg:0}),
+    F({name:"SQUARE 808", oct:-1, wave:"square", pw1:0.45, lvl:0.71, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.51, d2:0.46, o2:0, sync:0, nz:0.0, cut:0.609, res:0.0, fenv:1.52, kt:0.31, drv:0.22, pol:2, glide:0, a:0.002, d:2, s:1.0, r:0.027, fa:0.002, fd:0.044, fs:0.0, fr:0.111, vol:1.37, leg:0}),
+    F({name:"SQUARE SUB", oct:-1, wave:"square", pw1:0.46, lvl:0.53, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.52, d2:0.19, o2:0, sync:0, nz:0.0, cut:0.366, res:0.0, fenv:0, kt:0.31, drv:0.0, pol:4, glide:0, a:0.015, d:2, s:1.0, r:0.042, fa:0.002, fd:0.051, fs:0.0, fr:1.846, vol:1.52, leg:0}),
+    F({name:"SUB SWEEPER", oct:-1, wave:"square", pw1:0.46, lvl:0.0, sub:1, sw:0, w2:"square", pw2:0.47, l2:0.0, d2:0.02, o2:1, sync:0, nz:0.0, cut:0.45, res:0, fenv:0, kt:0, drv:0, pol:4, glide:0, a:0.107, d:1.68, s:1.0, r:2, fa:0.107, fd:1.68, fs:1.0, fr:2, vol:1.64, pa:18.6, pd:1.5, leg:0}),
+    F({name:"TAURUS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.66, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.46, d2:0.12, o2:0, sync:0, nz:0.0, cut:0.466, res:0.0, fenv:3.58, kt:0.35, drv:0.16, pol:4, glide:0, a:0.059, d:0.096, s:1.0, r:2, fa:0.002, fd:2, fs:0.0, fr:2, vol:1.4, leg:0}),
+    F({name:"THE TIME", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"square", pw2:0.28, l2:0.38, d2:0.04, o2:0, sync:0, nz:0.0, cut:0.516, res:0.0, fenv:1.27, kt:0.5, drv:0.03, pol:4, glide:0, a:0.002, d:0.741, s:1.0, r:0.045, fa:0.002, fd:0.901, fs:0.0, fr:0.516, vol:1.38, leg:0}),
+    F({name:"UNO BASS", oct:-1, wave:"square", pw1:0.47, lvl:0.69, sub:0.0, sw:1, w2:"square", pw2:0.43, l2:0.52, d2:1.71, o2:0, sync:1, nz:0.0, cut:0.238, res:0.0, fenv:2.28, kt:0.27, drv:0.08, pol:4, glide:0, a:0.002, d:0.74, s:1.0, r:1.339, fa:0.002, fd:0.421, fs:0.0, fr:0.661, vol:1.39, leg:0}),
+    F({name:"WATCH YO STEP", oct:-1, wave:"square", pw1:0.45, lvl:0.71, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.0, d2:0.14, o2:0, sync:0, nz:0.0, cut:0.246, res:0.37, fenv:2.16, kt:0.35, drv:0.15, pol:4, glide:0, a:0.002, d:1.672, s:1.0, r:0.555, fa:0.043, fd:0.783, fs:0.24, fr:0.586, vol:1.36, leg:0}),
+    F({name:"WORK IT OUT", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.56, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.0, d2:0.0, o2:-1, sync:0, nz:0.0, cut:0.421, res:0.11, fenv:2.95, kt:0.33, drv:0.0, pol:4, glide:0, a:0.002, d:1.674, s:1.0, r:0.031, fa:0.002, fd:0.505, fs:0.0, fr:0.177, vol:2.2, leg:0}),
+    F({name:"24K MAGIC", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.6, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.51, d2:0.11, o2:1, sync:0, nz:0.0, cut:0.653, res:0.0, fenv:2.81, kt:0.32, drv:0.14, pol:4, glide:0, a:0.002, d:1.914, s:1.0, r:0.031, fa:0.002, fd:0.626, fs:0.0, fr:0.89, vol:1.39, leg:0}),
+    F({name:"ABSENCE", oct:-1, wave:"square", pw1:0.45, lvl:0.52, sub:0.0, sw:1, w2:"square", pw2:0.45, l2:0.51, d2:0.33, o2:0, sync:0, nz:0.0, cut:0.31, res:0.23, fenv:4, kt:0.35, drv:0.04, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.839, fa:0.002, fd:2, fs:0.0, fr:0.652, vol:1.39, leg:0}),
+    F({name:"ALL THE STARS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.55, d2:0.24, o2:0, sync:0, nz:0.0, cut:0.325, res:0.3, fenv:2.39, kt:0.45, drv:0.15, pol:4, glide:0, a:0.002, d:1.672, s:1.0, r:0.845, fa:0.002, fd:1.548, fs:0.23, fr:1.275, vol:1.24, leg:0}),
+    F({name:"BOOGIE ON", oct:-1, wave:"triangle", pw1:0.5, lvl:0.6, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.32, d2:0.0, o2:1, sync:0, nz:0.0, cut:0.581, res:0.1, fenv:3.04, kt:0.23, drv:0.0, pol:4, glide:0, a:0.002, d:1.671, s:1.0, r:0.041, fa:0.011, fd:0.875, fs:0.0, fr:2, vol:1.8, leg:0}),
+    F({name:"ORGAN BASS 2", oct:-1, wave:"triangle", pw1:0.5, lvl:0.66, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.43, d2:2.29, o2:2, sync:1, nz:0.0, cut:0.339, res:0.0, fenv:2.95, kt:0.24, drv:0.2, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.082, fa:0.002, fd:0.604, fs:0.0, fr:0.889, vol:1.35, leg:0}),
+    F({name:"OVERGROWN", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.6, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.57, d2:0.14, o2:0, sync:0, nz:0.0, cut:0.34, res:0.0, fenv:1.01, kt:0.5, drv:0.06, pol:4, glide:0, a:0.003, d:1.671, s:1.0, r:1.074, fa:0.002, fd:0.95, fs:0.0, fr:1.22, vol:1.45, leg:0}),
+    F({name:"PYT BASS", oct:-2, wave:"square", pw1:0.45, lvl:0.57, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.07, o2:1, sync:0, nz:0.0, cut:0.249, res:0.3, fenv:2.81, kt:0.46, drv:0.0, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.048, fa:0.002, fd:0.526, fs:0.13, fr:0.653, vol:1.51, leg:0}),
+    F({name:"PHAT SAWS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.69, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.6, d2:0.18, o2:1, sync:0, nz:0.0, cut:0.674, res:0.0, fenv:1.06, kt:0.27, drv:0.08, pol:4, glide:0, a:0.002, d:0.741, s:1.0, r:0.04, fa:0.011, fd:0.707, fs:0.0, fr:0.661, vol:1.34, leg:0}),
+    F({name:"POTATOHEAD", oct:-1, wave:"square", pw1:0.34, lvl:0.55, sub:0.0, sw:1, w2:"square", pw2:0.31, l2:0.54, d2:0.11, o2:0, sync:0, nz:0.0, cut:0.352, res:0.0, fenv:2.95, kt:0.24, drv:0.0, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.027, fa:0.002, fd:0.371, fs:0.0, fr:0.699, vol:1.35, leg:0}),
+    F({name:"ROOFTOPS", oct:-1, wave:"square", pw1:0.45, lvl:0.65, sub:0.0, sw:1, w2:"square", pw2:0.41, l2:0.45, d2:1.99, o2:0, sync:1, nz:0.0, cut:0.359, res:0.0, fenv:3.61, kt:0.48, drv:0.2, pol:4, glide:0, a:0.002, d:1.506, s:1.0, r:0.292, fa:0.002, fd:0.555, fs:0.29, fr:0.635, vol:1.33, leg:0}),
+    F({name:"SYBDTTG", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.64, sub:0.0, sw:1, w2:"square", pw2:0.44, l2:0.0, d2:-0.15, o2:0, sync:0, nz:0.0, cut:0.395, res:0.19, fenv:2.3, kt:1, drv:0.08, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.038, fa:0.002, fd:0.497, fs:0.0, fr:0.857, vol:1.59, leg:0}),
+    F({name:"SHOFUKAN", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.64, sub:0.66, sw:1, w2:"sawtooth", pw2:0.5, l2:0.66, d2:0.1, o2:0, sync:0, nz:0.0, cut:0.643, res:0.0, fenv:1.0, kt:0.23, drv:0.12, pol:3, glide:0, a:0.002, d:1.278, s:1.0, r:0.042, fa:0.025, fd:0.557, fs:0.0, fr:1.349, vol:1.32, leg:0}),
+    F({name:"SLUMLORD", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.66, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.11, o2:0, sync:0, nz:0.0, cut:0.34, res:0.15, fenv:1.03, kt:0.39, drv:0.15, pol:4, glide:0, a:0.002, d:2, s:0.39, r:0.063, fa:0.005, fd:0.974, fs:0.22, fr:0.652, vol:1.54, leg:0}),
+    F({name:"SQUARE KICK", oct:-1, wave:"square", pw1:0.46, lvl:0.71, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.68, d2:0.13, o2:0, sync:1, nz:0.0, cut:0, res:0.42, fenv:3.61, kt:0.42, drv:0.04, pol:4, glide:0, a:0.002, d:1.765, s:0.0, r:1.918, fa:0.002, fd:1.017, fs:0.0, fr:0.769, vol:1.23, leg:0}),
+    F({name:"SUB BASS", oct:-2, wave:"square", pw1:0.45, lvl:0.0, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:1.0, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.222, res:0.85, fenv:0, kt:1, drv:0.24, pol:2, glide:0, a:0.006, d:2, s:1.0, r:0.045, fa:0.002, fd:0.058, fs:0.0, fr:0.888, vol:1.36, leg:0}),
+    F({name:"THEREALFREE", oct:-1, wave:"square", pw1:0.45, lvl:0.52, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.0, o2:1, sync:1, nz:0.0, cut:0.439, res:0.16, fenv:2.62, kt:0.71, drv:0.17, pol:4, glide:0, a:0.002, d:1.508, s:1.0, r:0.093, fa:0.002, fd:0.647, fs:0.0, fr:0.063, vol:1.45, leg:0}),
+    F({name:"VOICES", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.78, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.66, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.432, res:0.34, fenv:2.5, kt:1, drv:0.16, pol:3, glide:0, a:0.002, d:1.673, s:1.0, r:0.354, fa:0.002, fd:0.677, fs:0.0, fr:0.178, vol:1.33, leg:0}),
+    F({name:"WAYBACKHOME", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.61, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.64, d2:0.07, o2:1, sync:0, nz:0.0, cut:0.439, res:0.0, fenv:3.18, kt:0.0, drv:0.11, pol:4, glide:0, a:0.002, d:1.671, s:1.0, r:0.056, fa:0.006, fd:0.58, fs:1.0, fr:0.136, vol:1.36, leg:0}),
+    F({name:"WOLF", oct:-2, wave:"square", pw1:0.45, lvl:0.63, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.49, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.644, res:0.0, fenv:0, kt:0.15, drv:0.15, pol:3, glide:0, a:0.002, d:2, s:0.0, r:2, fa:0.002, fd:0.101, fs:1.0, fr:1.984, vol:1.57, leg:0}),
+    F({name:"AIN'T NOBODY", oct:-1, wave:"square", pw1:0.25, lvl:0.59, sub:0.0, sw:1, w2:"square", pw2:0.24, l2:0.23, d2:0.04, o2:1, sync:0, nz:0.0, cut:0.391, res:0.0, fenv:2.93, kt:0.61, drv:0.0, pol:4, glide:0, a:0.002, d:1.674, s:1.0, r:0.066, fa:0.002, fd:0.524, fs:0.0, fr:0.177, vol:1.41, leg:0}),
+    F({name:"BINKY", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.7, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.62, d2:0.05, o2:1, sync:0, nz:0.0, cut:0.587, res:0.0, fenv:0, kt:0.46, drv:0.25, pol:3, glide:0, a:0.002, d:0.315, s:1.0, r:0.02, fa:0.041, fd:0.748, fs:0.0, fr:2, vol:1.28, leg:0}),
+    F({name:"BONSAI", oct:-2, wave:"square", pw1:0.42, lvl:0.63, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.64, d2:0.15, o2:0, sync:0, nz:0.0, cut:0.392, res:0.3, fenv:2.38, kt:1, drv:0.22, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.038, fa:0.002, fd:0.499, fs:0.0, fr:0.889, vol:1.31, leg:0}),
+    F({name:"BUZZY808", oct:-1, wave:"square", pw1:0.45, lvl:0.73, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.0, d2:1.21, o2:1, sync:1, nz:0.0, cut:0.329, res:0.53, fenv:0, kt:1, drv:0.23, pol:1, glide:0, a:0.002, d:1.03, s:0.0, r:0.974, fa:0.002, fd:0.02, fs:0.0, fr:0.02, vol:0.93, leg:0}),
+    F({name:"CHAMELEON", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.68, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.43, d2:0.12, o2:0, sync:0, nz:0.0, cut:0.254, res:0.4, fenv:2.38, kt:0.0, drv:1.0, pol:3, glide:0, a:0.002, d:0.416, s:1.0, r:0.283, fa:0.002, fd:0.405, fs:0.0, fr:0.457, vol:1.28, leg:0}),
+    F({name:"DIRTY DIGITAL", oct:0, wave:"square", pw1:0.45, lvl:0.79, sub:0.21, sw:1, w2:"square", pw2:0.46, l2:0.64, d2:4.29, o2:-1, sync:1, nz:0.0, cut:0.348, res:0.36, fenv:0.25, kt:0.33, drv:0.09, pol:3, glide:0, a:0.002, d:1.677, s:1.0, r:0.046, fa:0.002, fd:0.32, fs:0.0, fr:0.226, vol:1.2, leg:0}),
+    F({name:"DRIPPY", oct:-1, wave:"square", pw1:0.5, lvl:0.69, sub:0.0, sw:1, w2:"square", pw2:0.31, l2:0.53, d2:0.17, o2:1, sync:0, nz:0.0, cut:0.576, res:0.16, fenv:4, kt:0.81, drv:0.07, pol:4, glide:0, a:0.002, d:0.632, s:1.0, r:0.02, fa:0.031, fd:0.549, fs:0.1, fr:0.031, vol:1.34, leg:0}),
+    F({name:"FEEL4U", oct:-1, wave:"square", pw1:0.27, lvl:0.62, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.07, o2:1, sync:0, nz:0.0, cut:0.398, res:0.0, fenv:3.55, kt:0.37, drv:0.0, pol:4, glide:0, a:0.002, d:1.673, s:1.0, r:0.066, fa:0.002, fd:0.289, fs:0.0, fr:0.178, vol:1.38, leg:0}),
+    F({name:"FUNKY SAWS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.46, d2:0.21, o2:1, sync:0, nz:0.0, cut:0.406, res:0.47, fenv:3.59, kt:0.48, drv:0.26, pol:4, glide:0, a:0.002, d:1.507, s:1.0, r:0.078, fa:0.002, fd:0.646, fs:0.0, fr:0.039, vol:1.17, leg:0}),
+    F({name:"HARD808", oct:-1, wave:"triangle", pw1:0.5, lvl:0.69, sub:0.0, sw:1, w2:"square", pw2:0.45, l2:0.0, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.329, res:0.53, fenv:0, kt:1, drv:0.16, pol:1, glide:0, a:0.002, d:1.03, s:0.0, r:0.982, fa:0.002, fd:0.02, fs:0.0, fr:0.02, vol:1.59, leg:0}),
+    F({name:"HOUSE STAB", oct:0, wave:"square", pw1:0.45, lvl:0.0, sub:0.74, sw:1, w2:"square", pw2:0.46, l2:0.0, d2:0.19, o2:-1, sync:0, nz:0.0, cut:0.277, res:0.37, fenv:2.58, kt:0.51, drv:0.09, pol:4, glide:0, a:0.002, d:1.673, s:1.0, r:0.061, fa:0.002, fd:0.321, fs:0.0, fr:0.226, vol:1.55, leg:0}),
+    F({name:"JUDAS", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.83, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.84, d2:0.17, o2:1, sync:0, nz:0.0, cut:0.454, res:0.0, fenv:1.67, kt:0.21, drv:0.28, pol:4, glide:0, a:0.002, d:2, s:0.5, r:2, fa:0.002, fd:2, fs:0.0, fr:0.89, vol:1.38, leg:0}),
+    F({name:"LFTC", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.54, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.39, d2:0.07, o2:0, sync:0, nz:0.0, cut:0.448, res:0.43, fenv:1.68, kt:1, drv:0.0, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.022, fa:0.002, fd:1.706, fs:0.12, fr:1.727, vol:1.49, leg:0}),
+    F({name:"LATCH", oct:0, wave:"square", pw1:0.45, lvl:0.0, sub:0.74, sw:1, w2:"square", pw2:0.46, l2:0.34, d2:0.19, o2:-1, sync:0, nz:0.0, cut:0, res:0.0, fenv:1.94, kt:0.09, drv:0.09, pol:4, glide:0, a:0.002, d:1.673, s:1.0, r:0.452, fa:0.002, fd:0.743, fs:0.0, fr:0.819, vol:2.09, leg:0}),
+    F({name:"MOLECULES", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.69, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.56, d2:0.25, o2:1, sync:0, nz:0.0, cut:0.259, res:0.23, fenv:2.35, kt:0.38, drv:0.63, pol:4, glide:0, a:0.002, d:1.673, s:1.0, r:0.669, fa:0.002, fd:0.6, fs:0.0, fr:0.49, vol:1.36, leg:0}),
+    F({name:"OK THEN", oct:0, wave:"square", pw1:0.46, lvl:0.36, sub:0.63, sw:1, w2:"square", pw2:0.46, l2:0.46, d2:0.11, o2:-1, sync:0, nz:0.0, cut:0, res:0.29, fenv:3.78, kt:0.27, drv:0.12, pol:4, glide:0, a:0.002, d:0.831, s:1.0, r:0.415, fa:0.023, fd:0.596, fs:0.66, fr:0.985, vol:1.25, leg:0}),
+    F({name:"THRILLER", oct:0, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.64, sw:1, w2:"sawtooth", pw2:0.5, l2:0.83, d2:0.08, o2:-1, sync:0, nz:0.0, cut:0.308, res:0.33, fenv:2.99, kt:0.36, drv:0.04, pol:4, glide:0, a:0.002, d:0.703, s:0.5, r:0.066, fa:0.002, fd:0.468, fs:0.15, fr:0.652, vol:1.21, leg:0}),
+    F({name:"UK GARAGE", oct:-1, wave:"square", pw1:0.45, lvl:0.71, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.0, d2:0.0, o2:2, sync:1, nz:0.0, cut:0.246, res:0.35, fenv:2.16, kt:0.33, drv:0.15, pol:4, glide:0, a:0.002, d:1.672, s:1.0, r:0.071, fa:0.002, fd:0.783, fs:0.24, fr:0.532, vol:1.41, leg:0}),
+    F({name:"WHAT I LIKE", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.59, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.32, d2:0.0, o2:1, sync:0, nz:0.0, cut:0.443, res:0.0, fenv:2.76, kt:0.62, drv:0.14, pol:4, glide:0, a:0.002, d:1.916, s:1.0, r:0.031, fa:0.002, fd:0.627, fs:0.0, fr:0.891, vol:1.46, leg:0}),
+    F({name:"WILLING&ABLE", oct:0, wave:"square", pw1:0.46, lvl:0.0, sub:0.77, sw:1, w2:"square", pw2:0.46, l2:0.26, d2:0.18, o2:-1, sync:0, nz:0.0, cut:0.12, res:0.32, fenv:2.78, kt:0.5, drv:0.0, pol:3, glide:0, a:0.013, d:0.74, s:1.0, r:0.887, fa:0.035, fd:0.706, fs:0.0, fr:0.622, vol:1.53, leg:0}),
+    F({name:"BBM", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.6, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.35, d2:-0.08, o2:1, sync:0, nz:0.0, cut:0.383, res:0.21, fenv:2.6, kt:0.42, drv:0.17, pol:4, glide:0, a:0.002, d:0.741, s:1.0, r:0.038, fa:0.002, fd:0.972, fs:0.16, fr:0.726, vol:1.35, leg:0}),
+    F({name:"BABY'S EYES", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.69, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.43, d2:0.09, o2:0, sync:0, nz:0.0, cut:0.191, res:0.51, fenv:2.73, kt:0.43, drv:0.19, pol:4, glide:0, a:0.002, d:0.096, s:1.0, r:0.055, fa:0.002, fd:2, fs:0.26, fr:0.766, vol:1.23, leg:0}),
+    F({name:"BELL BASS", oct:-1, wave:"square", pw1:0.45, lvl:0.58, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.57, d2:6.67, o2:2, sync:0, nz:0.0, cut:0.165, res:0.0, fenv:2.07, kt:0.43, drv:0.1, pol:4, glide:0, a:0.003, d:0.928, s:1.0, r:1.541, fa:0.002, fd:1.178, fs:0.31, fr:0.967, vol:1.49, leg:0}),
+    F({name:"CASCADES", oct:-1, wave:"square", pw1:0.45, lvl:0.31, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.64, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.36, res:0.32, fenv:2.9, kt:0.33, drv:0.11, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.033, fa:0.034, fd:0.226, fs:0.0, fr:0.22, vol:1.53, leg:0}),
+    F({name:"DEEP KICK", oct:-2, wave:"sawtooth", pw1:0.5, lvl:0.0, sub:1, sw:0, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.0, o2:1, sync:0, nz:0.0, cut:0.45, res:0, fenv:0, kt:0, drv:0, pol:4, glide:0, a:0.002, d:1.408, s:0.0, r:1.176, fa:0.002, fd:1.408, fs:0.0, fr:1.176, vol:1.73, pa:29.3, pd:0.624, leg:0}),
+    F({name:"DISTORTED PWM", oct:-2, wave:"square", pw1:0.47, lvl:0.67, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.62, d2:0.04, o2:1, sync:0, nz:0.0, cut:0.585, res:0.0, fenv:1.84, kt:0.4, drv:0.43, pol:2, glide:0, a:0.002, d:1.912, s:1.0, r:0.031, fa:0.002, fd:2, fs:0.0, fr:0.891, vol:1.37, leg:0}),
+    F({name:"ESSO BASS", oct:-2, wave:"square", pw1:0.45, lvl:0.68, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.282, res:0.0, fenv:0, kt:0.07, drv:0.15, pol:3, glide:0, a:0.139, d:2, s:1.0, r:0.038, fa:0.002, fd:0.101, fs:1.0, fr:0.111, vol:1.57, leg:0}),
+    F({name:"HOURGLASS", oct:-1, wave:"square", pw1:0.46, lvl:0.63, sub:0.02, sw:1, w2:"square", pw2:0.46, l2:0.49, d2:0.18, o2:0, sync:0, nz:0.0, cut:0, res:0.0, fenv:3.34, kt:0.5, drv:0.0, pol:4, glide:0, a:0.013, d:0.74, s:1.0, r:0.451, fa:0.056, fd:0.895, fs:0.47, fr:0.516, vol:1.47, leg:0}),
+    F({name:"HOUSE 5TH", oct:-2, wave:"triangle", pw1:0.5, lvl:0.59, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.49, d2:7.0, o2:2, sync:0, nz:0.0, cut:0, res:0.0, fenv:4, kt:0.44, drv:0.0, pol:4, glide:0, a:0.002, d:1.674, s:1.0, r:0.068, fa:0.002, fd:0.561, fs:0.42, fr:0.927, vol:1.74, leg:0}),
+    F({name:"I WANNA DANCE", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.48, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.6, d2:0.0, o2:1, sync:0, nz:0.0, cut:0.293, res:0.24, fenv:3.86, kt:0.31, drv:0.17, pol:4, glide:0, a:0.002, d:1.51, s:0.57, r:0.038, fa:0.005, fd:0.309, fs:0.41, fr:0.305, vol:1.4, leg:0}),
+    F({name:"LEVITATING", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.59, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.44, d2:0.18, o2:0, sync:0, nz:0.0, cut:0, res:0.27, fenv:4, kt:0.46, drv:0.06, pol:4, glide:0, a:0.011, d:1.671, s:1.0, r:0.196, fa:0.051, fd:0.517, fs:0.49, fr:0.273, vol:1.49, leg:0}),
+    F({name:"MITM", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.63, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.44, d2:0.1, o2:0, sync:0, nz:0.0, cut:0.424, res:0.27, fenv:2.6, kt:0.1, drv:0.16, pol:3, glide:0, a:0.002, d:2, s:1.0, r:0.045, fa:0.002, fd:0.619, fs:0.0, fr:0.889, vol:1.31, leg:0}),
+    F({name:"MORNING SUN", oct:-1, wave:"triangle", pw1:0.5, lvl:0.53, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.28, d2:0.0, o2:1, sync:1, nz:0.0, cut:0.352, res:0.06, fenv:2.89, kt:0.24, drv:0.0, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.027, fa:0.002, fd:0.499, fs:0.0, fr:0.699, vol:1.79, leg:0}),
+    F({name:"ORGAN BASS 1", oct:-2, wave:"square", pw1:0.45, lvl:0.64, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.46, d2:-0.02, o2:3, sync:0, nz:0.0, cut:0.338, res:0.0, fenv:2.61, kt:0.34, drv:0.27, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.031, fa:0.002, fd:0.485, fs:0.0, fr:0.889, vol:1.31, leg:0}),
+    F({name:"OVERTONES", oct:0, wave:"sawtooth", pw1:0.5, lvl:0.89, sub:0.9, sw:1, w2:"square", pw2:0.09, l2:0.91, d2:3.57, o2:0, sync:1, nz:0.0, cut:0.383, res:0.6, fenv:0.16, kt:0.96, drv:0.47, pol:2, glide:0, a:0.002, d:2, s:0.97, r:0.035, fa:0.016, fd:0.525, fs:0.0, fr:2, vol:1.17, leg:0}),
+    F({name:"SOMD BRIDGE", oct:-1, wave:"sawtooth", pw1:0.5, lvl:1.0, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:1.0, d2:0.14, o2:0, sync:0, nz:0.0, cut:0.445, res:0.0, fenv:0.05, kt:0.31, drv:0.24, pol:4, glide:0, a:0.012, d:2, s:1.0, r:0.022, fa:0.002, fd:0.369, fs:0.0, fr:1.723, vol:1.35, leg:0}),
+    F({name:"SAW PLUCK", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.53, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.0, d2:0.0, o2:0, sync:1, nz:0.0, cut:0, res:0.06, fenv:4, kt:0.21, drv:0.0, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.87, fa:0.002, fd:0.927, fs:0.0, fr:1.045, vol:2.6, leg:0}),
+    F({name:"SAWSQUARE", oct:-1, wave:"square", pw1:0.46, lvl:0.52, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.52, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.419, res:0.0, fenv:2.04, kt:0.5, drv:0.17, pol:4, glide:0, a:0.002, d:1.502, s:1.0, r:0.043, fa:0.002, fd:0.646, fs:0.12, fr:0.088, vol:1.65, leg:0}),
+    F({name:"SUPREME", oct:-1, wave:"square", pw1:0.46, lvl:0.6, sub:0.02, sw:1, w2:"square", pw2:0.46, l2:0.5, d2:0.18, o2:0, sync:0, nz:0.0, cut:0, res:0.21, fenv:4, kt:0.5, drv:0.0, pol:4, glide:0, a:0.013, d:0.74, s:1.0, r:0.257, fa:0.035, fd:0.706, fs:0.51, fr:0.516, vol:1.43, leg:0}),
+    F({name:"THE ONE", oct:-2, wave:"square", pw1:0.25, lvl:0.6, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.37, d2:0.0, o2:0, sync:0, nz:0.0, cut:0.369, res:0.06, fenv:2.96, kt:0.38, drv:0.06, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.038, fa:0.002, fd:0.38, fs:0.0, fr:0.889, vol:1.59, leg:0}),
+    F({name:"DX7 BASS", oct:-1, wave:"square", pw1:0.47, lvl:0.76, sub:0.0, sw:1, w2:"square", pw2:0.5, l2:0.61, d2:0.54, o2:1, sync:1, nz:0.0, cut:0.197, res:0.27, fenv:2.86, kt:0.39, drv:0.19, pol:4, glide:0, a:0.002, d:0.169, s:1.0, r:0.039, fa:0.002, fd:0.598, fs:0.31, fr:0.467, vol:1.14, leg:0}),
+    F({name:"FINESSE", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.66, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.55, d2:0.07, o2:1, sync:0, nz:0.0, cut:0.434, res:0.0, fenv:2.98, kt:0.27, drv:0.16, pol:4, glide:0, a:0.002, d:0.096, s:1.0, r:0.04, fa:0.002, fd:1.104, fs:0.0, fr:2, vol:1.36, leg:0}),
+    F({name:"FLUTTER BASS", oct:-2, wave:"square", pw1:0.46, lvl:0.7, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.0, d2:0.37, o2:0, sync:0, nz:0.0, cut:0, res:0.0, fenv:3.42, kt:0.56, drv:0.08, pol:4, glide:0, a:0.016, d:2, s:1.0, r:0.502, fa:0.061, fd:1.089, fs:0.0, fr:0.651, vol:1.56, leg:0}),
+    F({name:"HBFS", oct:-1, wave:"square", pw1:0.45, lvl:0.58, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.66, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.319, res:0.0, fenv:0.01, kt:0.09, drv:0.17, pol:2, glide:0, a:0.002, d:1.509, s:1.0, r:0.023, fa:0.002, fd:0.286, fs:1.0, fr:0.392, vol:1.71, leg:0}),
+    F({name:"IGNORE", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.31, d2:0.06, o2:0, sync:0, nz:0.0, cut:0.104, res:0.0, fenv:3.99, kt:0.52, drv:0.17, pol:4, glide:0, a:0.012, d:1.278, s:1.0, r:1.141, fa:0.037, fd:0.913, fs:0.16, fr:1.343, vol:1.48, leg:0}),
+    F({name:"LIMIT2YOURLUV", oct:-1, wave:"square", pw1:0.46, lvl:1.0, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:-0.09, o2:0, sync:0, nz:0.0, cut:0.214, res:0.0, fenv:0, kt:0.73, drv:0.06, pol:4, glide:0, a:0.09, d:1.671, s:1.0, r:0.092, fa:0.002, fd:0.372, fs:1.0, fr:0.275, vol:1.47, leg:0}),
+    F({name:"MAGNETS VIP", oct:-1, wave:"square", pw1:0.45, lvl:0.53, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.48, d2:0.02, o2:0, sync:1, nz:0.0, cut:0, res:0.0, fenv:4, kt:0.56, drv:0.07, pol:4, glide:0, a:0.002, d:1.677, s:1.0, r:0.783, fa:0.047, fd:1.036, fs:0.0, fr:0.764, vol:1.93, leg:0}),
+    F({name:"MONTEBOOKER", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.57, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.51, d2:0.12, o2:0, sync:0, nz:0.0, cut:0, res:0.0, fenv:3.52, kt:0.35, drv:0.17, pol:4, glide:0, a:0.002, d:1.509, s:1.0, r:1.007, fa:0.002, fd:0.824, fs:0.53, fr:1.028, vol:1.46, leg:0}),
+    F({name:"OCTAVE FUNK", oct:-1, wave:"square", pw1:0.46, lvl:0.49, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.5, d2:0.0, o2:1, sync:1, nz:0.0, cut:0.439, res:0.37, fenv:3.25, kt:0.71, drv:0.17, pol:4, glide:0, a:0.002, d:1.507, s:1.0, r:0.093, fa:0.01, fd:0.647, fs:0.0, fr:0.063, vol:1.25, leg:0}),
+    F({name:"OCTAVE TRACK", oct:-1, wave:"square", pw1:0.46, lvl:0.61, sub:0.0, sw:1, w2:"square", pw2:0.47, l2:0.4, d2:0.0, o2:1, sync:0, nz:0.0, cut:0, res:0.0, fenv:1.28, kt:1, drv:0.08, pol:4, glide:0, a:0.002, d:1.68, s:1.0, r:2, fa:0.002, fd:2, fs:0.0, fr:2, vol:1.67, leg:0}),
+    F({name:"POPLOCK", oct:-1, wave:"square", pw1:0.46, lvl:0.52, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.49, d2:0.03, o2:1, sync:1, nz:0.0, cut:0.365, res:0.45, fenv:2.76, kt:0.5, drv:0.17, pol:4, glide:0, a:0.002, d:1.502, s:1.0, r:0.043, fa:0.002, fd:0.646, fs:0.12, fr:0.088, vol:1.34, leg:0}),
+    F({name:"SOMD CHORUS", oct:-1, wave:"square", pw1:0.37, lvl:0.61, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.02, o2:0, sync:1, nz:0.0, cut:0.433, res:0.05, fenv:3.8, kt:0.44, drv:0.07, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.031, fa:0.002, fd:0.548, fs:0.01, fr:1.723, vol:1.72, leg:0}),
+    F({name:"SOMD VERSE", oct:-1, wave:"square", pw1:0.46, lvl:0.62, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.61, d2:0.14, o2:0, sync:0, nz:0.0, cut:0.384, res:0.0, fenv:2.05, kt:0.31, drv:0.24, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.047, fa:0.002, fd:0.369, fs:0.0, fr:1.721, vol:1.35, leg:0}),
+    F({name:"SAW LFO", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.73, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.14, o2:0, sync:0, nz:0.0, cut:0.342, res:0.0, fenv:2.79, kt:0.52, drv:0.1, pol:4, glide:0, a:0.002, d:1.277, s:1.0, r:0.035, fa:0.002, fd:2, fs:0.0, fr:1.35, vol:1.54, leg:0}),
+    F({name:"SLEEPER", oct:-2, wave:"square", pw1:0.5, lvl:0.64, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.0, o2:2, sync:0, nz:0.0, cut:0.549, res:0.0, fenv:0, kt:0.05, drv:0.12, pol:2, glide:0, a:0.002, d:1.278, s:1.0, r:0.042, fa:0.597, fd:0.902, fs:0.0, fr:1.349, vol:1.65, leg:0}),
+    F({name:"SOFTWAH", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.52, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.53, d2:0.0, o2:1, sync:1, nz:0.0, cut:0.382, res:0.14, fenv:2.31, kt:0.5, drv:0.17, pol:4, glide:0, a:0.002, d:1.509, s:1.0, r:0.043, fa:0.005, fd:0.646, fs:0.0, fr:0.087, vol:1.3, leg:0}),
+    F({name:"SOFT SAW BASS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.5, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.54, d2:-0.23, o2:1, sync:0, nz:0.0, cut:0.172, res:0.0, fenv:2.58, kt:0.38, drv:0.09, pol:4, glide:0, a:0.002, d:2, s:1.0, r:2, fa:0.002, fd:2, fs:0.38, fr:2, vol:1.48, leg:0}),
+    F({name:"STEVIE BASS", oct:-1, wave:"square", pw1:0.35, lvl:0.68, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.5, d2:0.14, o2:1, sync:1, nz:0.0, cut:0.056, res:0.0, fenv:3.18, kt:0.59, drv:0.21, pol:4, glide:0, a:0.003, d:0.078, s:1.0, r:0.029, fa:0.002, fd:0.797, fs:0.79, fr:0.195, vol:1.36, leg:0}),
+    F({name:"SUPERPWM", oct:-1, wave:"square", pw1:0.46, lvl:0.51, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.51, d2:0.09, o2:0, sync:0, nz:0.0, cut:0.512, res:0.0, fenv:0, kt:0.31, drv:0.0, pol:2, glide:0, a:0.056, d:1.671, s:1.0, r:1.237, fa:0.002, fd:1.928, fs:0.0, fr:0.783, vol:1.47, leg:0}),
+    F({name:"TIGHT FUNK", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.52, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.57, d2:0.03, o2:1, sync:0, nz:0.0, cut:0.645, res:0.0, fenv:2.49, kt:0.34, drv:0.0, pol:4, glide:0, a:0.002, d:1.502, s:1.0, r:0.043, fa:0.002, fd:0.487, fs:0.0, fr:0.304, vol:1.49, leg:0}),
+    F({name:"1 POLE 808", oct:-2, wave:"square", pw1:0.45, lvl:1.0, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.0, d2:0.0, o2:0, sync:1, nz:0.0, cut:0.222, res:0.85, fenv:0, kt:1, drv:0.31, pol:1, glide:0, a:0.002, d:2, s:1.0, r:0.026, fa:0.002, fd:0.058, fs:0.0, fr:0.888, vol:0.78, leg:0}),
+    F({name:"AT ALL", oct:-2, wave:"square", pw1:0.46, lvl:0.64, sub:0.0, sw:1, w2:"square", pw2:0.44, l2:0.35, d2:1.29, o2:0, sync:1, nz:0.0, cut:0.366, res:0.12, fenv:1.73, kt:0.81, drv:0.08, pol:4, glide:0, a:0.002, d:2, s:1.0, r:0.038, fa:0.002, fd:0.499, fs:0.0, fr:0.891, vol:1.49, leg:0}),
+    F({name:"COSMIC", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.65, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.63, d2:0.13, o2:0, sync:0, nz:0.0, cut:0, res:0.03, fenv:4, kt:0.36, drv:0.03, pol:4, glide:0, a:0.002, d:1.5, s:1.0, r:0.347, fa:0.002, fd:0.922, fs:0.0, fr:0.859, vol:1.56, leg:0}),
+    F({name:"DON'TSTARTNOW", oct:-1, wave:"square", pw1:0.45, lvl:0.57, sub:0.0, sw:1, w2:"square", pw2:0.5, l2:0.59, d2:-0.07, o2:0, sync:1, nz:0.0, cut:0, res:0.13, fenv:4, kt:0.16, drv:0.06, pol:4, glide:0, a:0.002, d:1.673, s:1.0, r:0.092, fa:0.002, fd:0.372, fs:0.42, fr:0.275, vol:1.41, leg:0}),
+    F({name:"FIRE", oct:-2, wave:"square", pw1:0.46, lvl:0.68, sub:0.0, sw:1, w2:"square", pw2:0.46, l2:0.6, d2:0.19, o2:0, sync:0, nz:0.0, cut:0, res:0.11, fenv:2.25, kt:0.52, drv:0.19, pol:4, glide:0, a:0.002, d:0.096, s:1.0, r:0.133, fa:0.002, fd:0.41, fs:0.3, fr:0.825, vol:1.4, leg:0}),
+    F({name:"MEASUREMENTS", oct:-1, wave:"sawtooth", pw1:0.5, lvl:0.81, sub:0.0, sw:1, w2:"sawtooth", pw2:0.5, l2:0.0, d2:0.12, o2:0, sync:0, nz:0.0, cut:0.256, res:0.0, fenv:1.85, kt:0.65, drv:0.06, pol:2, glide:0, a:0.002, d:1.27, s:0.51, r:0.053, fa:0.002, fd:1.137, fs:0.0, fr:1.225, vol:1.56, leg:0}),
+    F({name:"UP&DOWN", oct:-1, wave:"square", pw1:0.17, lvl:0.66, sub:0.0, sw:1, w2:"triangle", pw2:0.5, l2:0.4, d2:-0.06, o2:0, sync:1, nz:0.0, cut:0.353, res:0.0, fenv:3.73, kt:0.27, drv:0.16, pol:4, glide:0, a:0.002, d:0.096, s:1.0, r:0.04, fa:0.002, fd:0.594, fs:0.0, fr:2, vol:1.27, leg:0})
   ];
   const UKEY='aura_user_presets_v1', LKEY='aura_last_preset_v1', FKEY='aura_favs_v1', FOKEY='aura_fav_only_v1';
-  let USER = (LS.get(UKEY,[])||[]).filter(p=>p&&typeof p.name==='string').map(norm);
+  const asList = v => Array.isArray(v) ? v : [];
+  let USER = asList(LS.get(UKEY,[])).filter(p=>p&&typeof p==='object'&&typeof p.name==='string').map(p=>{ const q=norm(p); delete q.factory; return q; });
   let PRESETS = FACTORY.concat(USER);
-  let favs = new Set(LS.get(FKEY,[])||[]), favOnly = !!LS.get(FOKEY,false);
+  let favs = new Set(asList(LS.get(FKEY,[])).filter(x=>typeof x==='string')), favOnly = !!LS.get(FOKEY,false);
   let curPreset = 0, dirty = false;
-  { const l=LS.get(LKEY,0); if(l>=0 && l<PRESETS.length) curPreset=l; }
+  { const l=LS.get(LKEY,0); if(Number.isInteger(l) && l>=0 && l<PRESETS.length) curPreset=l; }
   const P = {}; PKEYS.forEach(k=>P[k]=PRESETS[curPreset][k]);
 
   let bend = 0, mod = 0, stack = [], sustainOn = false, held = new Set(), gate = false, learnMode = false, lastNote = 36;
@@ -587,12 +594,15 @@
   const ang = p => -135+p*270;
   function drawKnob(k){ k.cap.style.transform='rotate('+ang(toPos(k,P[k.id]))+'deg)'; k.out.textContent=k.fmt(P[k.id]); }
   function drawMarks(){ KNOBS.forEach(k=>{ k.mk.style.transform='rotate('+ang(toPos(k,PRESETS[curPreset][k.id]))+'deg)'; }); }
-  function knobChanged(k){ drawKnob(k); applyAll(); if(k.tune) retune(); setDirty(true); flashParam(k); }
+  const LIVE_F = {cut:1, fenv:1, fs:1, kt:1};
+  function knobChanged(k){ drawKnob(k); applyAll(); if(k.tune) retune(); if(ctx && gate){ if(LIVE_F[k.id]) trackFilter(); else if(k.id==='s') amp.gain.setTargetAtTime(P.s, ctx.currentTime, 0.03); } setDirty(true); flashParam(k); if(k.dial) k.dial.setAttribute('aria-valuetext',k.fmt(P[k.id])); }
   KNOBS.forEach(k=>{
     const w=document.createElement('div'); w.className='kn'+(k.size?' '+k.size:'');
     w.innerHTML='<div class="dial"><div class="mk"></div><div class="cap"></div></div><label>'+k.label+'</label><output></output><span class="cc"></span>';
     $('sec_'+k.sec).appendChild(w);
-    k.dial=w.querySelector('.dial'); k.cap=w.querySelector('.cap'); k.mk=w.querySelector('.mk'); k.out=w.querySelector('output'); k.wrap=w; k.ccEl=w.querySelector('.cc'); KN[k.id]=k;
+    k.dial=w.querySelector('.dial'); k.dial.tabIndex=0; k.dial.setAttribute('role','slider'); k.dial.setAttribute('aria-label',k.full||k.label);
+    k.dial.addEventListener('keydown',e=>{ const d=(e.key==='ArrowUp'||e.key==='ArrowRight')?1:((e.key==='ArrowDown'||e.key==='ArrowLeft')?-1:0); if(!d||learnMode) return; e.preventDefault(); P[k.id]=toVal(k,Math.min(1,Math.max(0,toPos(k,P[k.id])+d*(e.shiftKey?0.1:0.02)))); knobChanged(k); });
+    k.cap=w.querySelector('.cap'); k.mk=w.querySelector('.mk'); k.out=w.querySelector('output'); k.wrap=w; k.ccEl=w.querySelector('.cc'); KN[k.id]=k;
     let startY=0, startP=0, drag=false, lastTap=0;
     k.dial.addEventListener('pointerdown',e=>{
       if(learnMode){ setTarget(k.id); return; }
@@ -612,14 +622,18 @@
 
   // ====================== Janelas ======================
   const openD=id=>$(id).classList.add('open'), closeD=id=>$(id).classList.remove('open');
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.dlg.open').forEach(d=>d.classList.remove('open')); });
+  document.addEventListener('contextmenu',e=>{ if(e.target.closest && e.target.closest('.synth')) e.preventDefault(); });   // toque longo não abre menu do navegador
   document.querySelectorAll('.dlg').forEach(d=>{
     d.addEventListener('click',e=>{ if(e.target===d || e.target.hasAttribute('data-close')) d.classList.remove('open'); });
   });
 
   // ====================== Mapeamento MIDI (knobs e setas de preset) ======================
   const MAPKEY='aura_cc_map_v1', ACTKEY='aura_act_map_v1', RESERVED=[64,120,123];
-  let ccMap = LS.get(MAPKEY,{})||{}, actMap = LS.get(ACTKEY,{})||{}, learnTarget=null;
   const ACTS = {prev:{el:'pPrev',name:'PRESET ANTERIOR'}, next:{el:'pNext',name:'PRÓXIMO PRESET'}};
+  function cleanCC(m){ const o={}; if(m&&typeof m==='object') for(const c in m){ if(/^\d{1,3}$/.test(c) && +c<128 && KN[m[c]]) o[c]=m[c]; } return o; }
+  function cleanAct(m){ const o={}; if(m&&typeof m==='object') for(const c in m){ if(/^[cn]\d{1,3}$/.test(c) && ACTS[m[c]]) o[c]=m[c]; } return o; }
+  let ccMap = cleanCC(LS.get(MAPKEY,{})), actMap = cleanAct(LS.get(ACTKEY,{})), learnTarget=null;
   function drawMap(){
     KNOBS.forEach(k=>k.wrap.classList.remove('mapped'));
     Object.keys(ccMap).forEach(cc=>{ const k=KN[ccMap[cc]]; if(k){ k.wrap.classList.add('mapped'); k.ccEl.textContent='CC'+cc; } });
@@ -644,19 +658,19 @@
       const a=learnTarget.slice(4);
       Object.keys(actMap).forEach(k=>{ if(actMap[k]===a) delete actMap[k]; });
       actMap[kind+num]=a; LS.set(ACTKEY,actMap); drawMap();
-      learnSay(ACTS[a].name+' = '+(kind==='c'?'CC ':'NOTA ')+num); setTarget2(null); return true;
+      learnSay(ACTS[a].name+' = '+(kind==='c'?'CC ':'NOTA ')+num); clearTarget(); return true;
     }
     if(kind!=='c' || RESERVED.includes(num)) return false;
     Object.keys(ccMap).forEach(c=>{ if(ccMap[c]===learnTarget) delete ccMap[c]; });
     ccMap[num]=learnTarget; LS.set(MAPKEY,ccMap); drawMap();
-    learnSay((KN[learnTarget].full||KN[learnTarget].label)+' = CC '+num+'. Toque no próximo'); setTarget2(null); return true;
+    learnSay((KN[learnTarget].full||KN[learnTarget].label)+' = CC '+num+'. Toque no próximo'); clearTarget(); return true;
   }
-  function setTarget2(){ learnTarget=null; document.querySelectorAll('.target').forEach(e=>e.classList.remove('target')); }
+  function clearTarget(){ learnTarget=null; document.querySelectorAll('.target').forEach(e=>e.classList.remove('target')); }
   function applyCC(cc,val){
     const k=KN[ccMap[cc]]; if(!k) return false;
     P[k.id]=toVal(k,val/127); knobChanged(k); return true;
   }
-  const lastCC = {};
+  const lastCC = {}, lastActT = {};
   function doAct(a){ if(a==='prev') stepPreset(-1); else if(a==='next') stepPreset(1); }
   $('learnDone').addEventListener('click',()=>setLearn(false));
   drawMap();
@@ -683,7 +697,7 @@
   function loadPreset(i){
     curPreset=((i%PRESETS.length)+PRESETS.length)%PRESETS.length;
     PKEYS.forEach(k=>P[k]=PRESETS[curPreset][k]);
-    KNOBS.forEach(drawKnob); drawMarks(); drawSelectors(); applyAll(); retune();
+    KNOBS.forEach(drawKnob); drawMarks(); drawSelectors(); applyAll(); retune(); if(ctx && gate) trackFilter();
     dirty=false; flash=null; renderOled(); LS.set(LKEY,curPreset);
   }
   function stepPreset(dir){
@@ -714,13 +728,18 @@
     if(!box.children.length){ const e=document.createElement('p'); e.textContent=favOnly&&!q?'Nenhum favorito marcado ainda.':'Nenhum preset com esse nome.'; box.appendChild(e); }
   }
   $('oled').addEventListener('click',()=>{ if(learnMode) return; $('pSearch').value=''; drawList(); openD('dlgList'); });
+  $('oled').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('oled').click(); } });
   $('pSearch').addEventListener('input',drawList);
   $('favOnly').addEventListener('click',()=>{ favOnly=!favOnly; LS.set(FOKEY,favOnly); drawList(); });
 
   const pName=$('pName');
   function persistUser(){ USER=PRESETS.filter(p=>!p.factory); return LS.set(UKEY,USER); }
   function snapshot(name){ const o={name:name}; PKEYS.forEach(k=>o[k]=P[k]); return o; }
-  function cleanName(){ return (pName.value||'').trim().toUpperCase().slice(0,18) || ('MEU PRESET '+(USER.length+1)); }
+  function cleanName(skip){
+    const base=(pName.value||'').trim().toUpperCase().slice(0,18) || 'MEU PRESET'; let name=base, i=2;
+    while(PRESETS.some((p,ix)=>ix!==skip && p.name===name)){ const suf=' '+(i++); name=base.slice(0,18-suf.length)+suf; }   // nome repetido confundiria os favoritos
+    return name;
+  }
   function openSave(){
     const cur=PRESETS[curPreset], isUser=!cur.factory;
     pName.value=isUser?cur.name:'';
@@ -731,15 +750,15 @@
   }
   function doneSave(msg){ closeD('dlg'); pName.blur(); say(msg); }
   $('dNew').addEventListener('click',()=>{ const p=snapshot(cleanName()); PRESETS.push(p); const ok=persistUser(); loadPreset(PRESETS.length-1); doneSave(ok?'Preset salvo':'Não gravou neste navegador'); });
-  $('dOver').addEventListener('click',()=>{ if(PRESETS[curPreset].factory) return; PRESETS[curPreset]=snapshot(cleanName()); const ok=persistUser(); loadPreset(curPreset); doneSave(ok?'Preset atualizado':'Não gravou neste navegador'); });
-  $('dDel').addEventListener('click',()=>{ if(PRESETS[curPreset].factory) return; PRESETS.splice(curPreset,1); persistUser(); loadPreset(Math.min(curPreset,PRESETS.length-1)); doneSave('Preset excluído'); });
+  $('dOver').addEventListener('click',()=>{ if(PRESETS[curPreset].factory) return; { const old=PRESETS[curPreset].name, nn=cleanName(curPreset); if(favs.delete(old)){ favs.add(nn); LS.set(FKEY,[...favs]); } PRESETS[curPreset]=snapshot(nn); } const ok=persistUser(); loadPreset(curPreset); doneSave(ok?'Preset atualizado':'Não gravou neste navegador'); });
+  $('dDel').addEventListener('click',()=>{ if(PRESETS[curPreset].factory) return; if(favs.delete(PRESETS[curPreset].name)) LS.set(FKEY,[...favs]); PRESETS.splice(curPreset,1); persistUser(); loadPreset(Math.min(curPreset,PRESETS.length-1)); doneSave('Preset excluído'); });
 
   // ====================== Exportar e importar ======================
   function exportAll(){
     const data={aura:1, presets:USER, favs:[...favs], ccMap:ccMap, actMap:actMap};
     try{
       const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));
-      a.download='aura-synth-bass-backup.json'; document.body.appendChild(a); a.click(); a.remove();
+      a.download='aura-synth-bass-backup.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
       say(USER.length+' preset(s) exportado(s)');
     }catch(e){ say('Não foi possível exportar'); }
   }
@@ -755,7 +774,7 @@
     const p={name:name.slice(0,18)||'IMPORTADO', oct:o1===0?-2:(o1===1?-1:0), wave:wv(v[30]), pw1:pwOf(v[30]), lvl:+(v[26]/16383).toFixed(2), sub:+(v[29]/16383).toFixed(2), sw:1,
       w2:wv(v[31]), pw2:pwOf(v[31]), l2:+(v[27]/16383).toFixed(2), d2:+((v[32]-8192)/8192*7 + 12*Math.log2((65+(v[33]-8192)/8192*3.5)/65)).toFixed(2), o2:Math.max(-2,Math.min(3,v[91]-o1)), sync:v[34]===1?1:0, nz:+(v[28]/16383).toFixed(2),
       cut:+Math.min(1,Math.max(0,Math.log(hz/30)/Math.log(600))).toFixed(3), res:+Math.min(0.85,v[37]/16383).toFixed(2), fenv:+Math.min(4,Math.max(0,(v[38]-8192)/8192*6)).toFixed(2), kt:+Math.min(1,v[39]/8192).toFixed(2),
-      drv:+(v[40]/16383).toFixed(2), pol:Math.min(4,Math.max(1,v[92]+1)), glide:0,
+      drv:+(v[40]/16383).toFixed(2), pol:Math.min(4,Math.max(1,v[92]+1)), glide:0, leg:0,
       a:T(v[18],0.002,1), d:T(v[19],0.02,2), s:+(v[20]/16383).toFixed(2), r:T(v[21],0.02,2),
       fa:T(v[22],0.002,1), fd:T(v[23],0.02,2), fs:+(v[24]/16383).toFixed(2), fr:T(v[25],0.02,2), vol:1.3};
     if(p.lvl===0 && p.l2===0 && p.sub===0 && p.nz===0){      // som feito só pelo filtro oscilando: vira seno com queda de afinação
@@ -776,12 +795,12 @@
       oct:Math.max(-3,Math.min(1,o1-4)), wave:W(q.vco0_wave_k), pw1:PW(q.vco0_wave_k), lvl:+on('vco0').toFixed(2),
       w2:W(q.vco1_wave_k), pw2:PW(q.vco1_wave_k), l2:+on('vco1').toFixed(2), d2:+((q.vco1_semi_k||0)*7).toFixed(2), o2:Math.max(-2,Math.min(3,o2-o1)), nz:+(on('noise')*0.6).toFixed(2), sub:0,
       cut:+Math.min(1,Math.max(0,Math.log(hz/30)/Math.log(600))).toFixed(3), res:+Math.min(0.9,q.vcf_regen_k||0).toFixed(2), fenv:+Math.min(4,(q.amount_contour_k||0)*8).toFixed(2),
-      kt:+((q.keyboard_control1_t>0?1/3:0)+(q.keyboard_control2_t>0?2/3:0)).toFixed(3), glide:q.glide_enable_t>0.5?+(0.4*(q.syn_glide_k||0)).toFixed(3):0,
+      kt:+((q.keyboard_control1_t>0?1/3:0)+(q.keyboard_control2_t>0?2/3:0)).toFixed(3), leg:q.ctrl_legato_t>0.5?1:0, glide:q.glide_enable_t>0.5?+(0.4*(q.syn_glide_k||0)).toFixed(3):0,
       fa:+Math.min(1,Math.max(0.002,mdTime(q.adsr0_att_k||0))).toFixed(3), fd:fdec, fs:+(q.adsr0_sus_k||0).toFixed(2), fr:rel?fdec:0.03,
       a:+Math.min(1,Math.max(0.002,mdTime(q.adsr1_att_k||0))).toFixed(3), d:dec, s:+(q.adsr1_sus_k||0).toFixed(2), r:rel?dec:0.03, vol:1.4};
   }
   async function importFiles(files){
-    let n=0, bad=0, extra='';
+    let n=0, bad=0, extra='', lastIdx=-1, saved=true;
     for(const f of files){
       try{
         const buf=new Uint8Array(await f.arrayBuffer()); let got=[];
@@ -789,17 +808,18 @@
         else{
           const txt=new TextDecoder().decode(buf); let j=null; try{ j=JSON.parse(txt); }catch(e){}
           if(j && j.aura){
-            got=(j.presets||[]).filter(p=>p&&typeof p.name==='string');
-            (j.favs||[]).forEach(x=>favs.add(x)); LS.set(FKEY,[...favs]);
-            if(j.ccMap){ ccMap=j.ccMap; LS.set(MAPKEY,ccMap); } if(j.actMap){ actMap=j.actMap; LS.set(ACTKEY,actMap); } drawMap(); extra=' + ajustes';
+            got=asList(j.presets).filter(p=>p&&typeof p==='object'&&typeof p.name==='string').slice(0,500);
+            asList(j.favs).forEach(x=>{ if(typeof x==='string') favs.add(x); }); LS.set(FKEY,[...favs]);
+            if(j.ccMap){ ccMap=cleanCC(j.ccMap); LS.set(MAPKEY,ccMap); } if(j.actMap){ actMap=cleanAct(j.actMap); LS.set(ACTKEY,actMap); } drawMap(); extra=' + ajustes';
           } else { const p=fromMdp(txt); if(p) got=[p]; }
         }
         if(!got.length){ bad++; continue; }
-        got.forEach(p=>{ const q=norm(p); delete q.factory; const i=PRESETS.findIndex(x=>!x.factory && x.name===q.name); if(i>=0) PRESETS[i]=q; else PRESETS.push(q); n++; });
+        got.forEach(p=>{ const q=norm(p); delete q.factory; if(PRESETS.some(x=>x.factory && x.name===q.name)) q.name=(q.name.slice(0,16)+' U');   // não repete o nome de um preset de fábrica
+          let i=PRESETS.findIndex(x=>!x.factory && x.name===q.name); if(i>=0) PRESETS[i]=q; else { PRESETS.push(q); i=PRESETS.length-1; } lastIdx=i; n++; });
       }catch(e){ bad++; }
     }
-    if(n){ persistUser(); loadPreset(PRESETS.length-1); }
-    say(n+' preset(s) importado(s)'+extra+(bad?' · '+bad+' arquivo(s) não lido(s)':''),5000);
+    if(n){ saved=persistUser(); loadPreset(lastIdx); }
+    say(n+' preset(s) importado(s)'+extra+(saved?'':' · sem espaço para gravar neste navegador')+(bad?' · '+bad+' arquivo(s) não lido(s)':''),5000);
   }
   $('fileIn').addEventListener('change',e=>{ const fs=[...e.target.files]; e.target.value=''; if(fs.length) importFiles(fs); });
 
@@ -813,7 +833,7 @@
   $('mMidi').addEventListener('click',()=>{ closeD('dlgMenu'); connectMidi(); });
   $('mBle').addEventListener('click',()=>{ closeD('dlgMenu'); connectBle(); });
   $('mVel').addEventListener('click',()=>{ velLevel=(velLevel+1)%VLEV.length; LS.set(VKEY,velLevel); $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); });
-  function setLocked(on){ document.body.classList.toggle('locked',on); $('lockBtn').classList.toggle('on',on); }
+  function setLocked(on){ document.body.classList.toggle('locked',on); $('lockBtn').classList.toggle('on',on); $('lockBtn').setAttribute('aria-pressed',on?'true':'false'); }
   $('lockBtn').addEventListener('click',()=>{ const on=!document.body.classList.contains('locked'); if(on&&learnMode) setLearn(false); setLocked(on); say(on?'Controles da tela travados':'Controles da tela liberados',1800); });
 
   // ====================== Áudio ======================
@@ -829,20 +849,25 @@
       {name:'pwmod',defaultValue:0,automationRate:'a-rate'} ]; }
     constructor(){ super(); this.p1=0; this.p2=0; this.ps=0; this.y1=0; this.y2=0; this.y3=0; this.y4=0;
       this.c={w1:2,w2:1,pw1:.5,pw2:.5,ratio:1,sync:0,l1:.75,l2:0,ls:0,sm:0,nz:0,res:0,drv:0,pol:4};
+      this.m={l1:.75,l2:0,ls:0,nz:0,res:0,drv:0,first:true};     // valores suavizados, para não estalar ao girar um knob
       this.port.onmessage=e=>{ Object.assign(this.c,e.data); }; }
     blep(t,dt){ if(t<dt){ t/=dt; return t+t-t*t-1; } if(t>1-dt){ t=(t-1)/dt; return t*t+t+t+1; } return 0; }
     osc(w,p,dt,pw){
       if(w===0) return 1-4*Math.abs(p-0.5);
       if(w===1) return 2*p-1-this.blep(p,dt);
       let q=p+1-pw; if(q>=1) q-=1;
-      return (p<pw?1:-1)+this.blep(p,dt)-this.blep(q,dt)+(1-2*pw)*0.6;
+      return (p<pw?1:-1)+this.blep(p,dt)-this.blep(q,dt)+(1-2*pw);     // centrado em zero: sem estalo ao abrir e fechar a nota
     }
     process(inputs,outputs,pr){
       const o=outputs[0][0], n=o.length, c=this.c, sr=sampleRate;
       const F=pr.freq, D=pr.detune, PT=pr.pitch, C=pr.cutoff, CM=pr.cutmod, PW=pr.pwmod;
       let p1=this.p1,p2=this.p2,ps=this.ps,y1=this.y1,y2=this.y2,y3=this.y3,y4=this.y4;
-      const k=c.res*4.25, dg=1+c.drv*7, comp=1+k*0.55, og=1/(1+1.5*c.drv);
+      const m=this.m; if(m.first){ m.first=false; m.l1=c.l1; m.l2=c.l2; m.ls=c.ls; m.nz=c.nz; m.res=c.res; m.drv=c.drv; }
+      m.res+=0.35*(c.res-m.res); m.drv+=0.35*(c.drv-m.drv);
+      const k=m.res*4.25, dg=1+m.drv*7, comp=1+k*0.55, og=1/(1+1.5*m.drv);
+      let l1=m.l1, l2=m.l2, ls=m.ls, nz=m.nz;
       for(let i=0;i<n;i++){
+        l1+=0.004*(c.l1-l1); l2+=0.004*(c.l2-l2); ls+=0.004*(c.ls-ls); nz+=0.004*(c.nz-nz);
         const cents=(D.length>1?D[i]:D[0])+(PT.length>1?PT[i]:PT[0]);
         let f=(F.length>1?F[i]:F[0]); if(cents!==0) f*=Math.pow(2,cents/1200);
         const dt1=Math.min(f/sr,0.45), dt2=Math.min(f*c.ratio/sr,0.45);
@@ -851,13 +876,13 @@
         p2+=dt2; if(p2>=1) p2-=1;
         if(wrap && c.sync){ p2=p1*dt2/dt1; if(p2>=1) p2-=Math.floor(p2); }
         let s=0;
-        if(c.l1>0) s+=c.l1*this.osc(c.w1,p1,dt1,Math.min(0.95,Math.max(0.05,c.pw1+pm)));
-        if(c.l2>0) s+=c.l2*this.osc(c.w2,p2,dt2,Math.min(0.95,Math.max(0.05,c.pw2+pm)));
-        if(c.ls>0){
-          if(c.sm){ ps+=dt1*0.5; if(ps>=1) ps-=1; s+=c.ls*0.75*((ps<0.5?1:-1)+this.blep(ps,dt1*0.5)-this.blep(ps<0.5?ps+0.5:ps-0.5,dt1*0.5)); }
-          else { ps+=dt1; if(ps>=1) ps-=1; s+=c.ls*Math.sin(6.283185307*ps); }
+        if(l1>1e-4) s+=l1*this.osc(c.w1,p1,dt1,Math.min(0.95,Math.max(0.05,c.pw1+pm)));
+        if(l2>1e-4) s+=l2*this.osc(c.w2,p2,dt2,Math.min(0.95,Math.max(0.05,c.pw2+pm)));
+        if(ls>1e-4){
+          if(c.sm){ ps+=dt1*0.5; if(ps>=1) ps-=1; s+=ls*0.75*((ps<0.5?1:-1)+this.blep(ps,dt1*0.5)-this.blep(ps<0.5?ps+0.5:ps-0.5,dt1*0.5)); }
+          else { ps+=dt1; if(ps>=1) ps-=1; s+=ls*Math.sin(6.283185307*ps); }
         }
-        if(c.nz>0) s+=c.nz*0.6*(Math.random()*2-1);
+        if(nz>1e-4) s+=nz*0.6*(Math.random()*2-1);
         s*=0.6;
         const cm=(CM.length>1?CM[i]:CM[0]);
         let fc=(C.length>1?C[i]:C[0]); if(cm!==0) fc*=Math.pow(2,cm);
@@ -868,6 +893,7 @@
         o[i]=(c.pol===1?y1:(c.pol===2?y2:(c.pol===3?y3:y4)))*og;
       }
       if(Math.abs(y4)<1e-18){ y1=y2=y3=y4=0; }
+      m.l1=l1; m.l2=l2; m.ls=ls; m.nz=nz;
       this.p1=p1;this.p2=p2;this.ps=ps;this.y1=y1;this.y2=y2;this.y3=y3;this.y4=y4; return true;
     }
   }
@@ -935,6 +961,7 @@
     if(ctx.audioWorklet && window.AudioWorkletNode){
       const url = URL.createObjectURL(new Blob([WORKLET],{type:'application/javascript'}));
       ctx.audioWorklet.addModule(url).then(()=>{
+        URL.revokeObjectURL(url);
         const old=V, nv=workletVoice(); old.kill(); V=nv; window.__auraEngine='worklet';
         applyAll(); V.freq(noteFreq(lastNote),0,true);
         const t=ctx.currentTime; V.cut.forEach(p=>{ p.setValueAtTime(gate ? Math.min(baseCut()*Math.pow(2,P.fenv*P.fs),20000) : baseCut(), t); });
@@ -943,7 +970,7 @@
   }
   function applyAll(){
     if(!ctx) return;
-    master.gain.value = P.vol;
+    master.gain.setTargetAtTime(P.vol, ctx.currentTime, 0.012);      // sem degraus ao girar o volume
     lfo.type = P.lwv; lfo.frequency.value = P.lr;
     lfoC.gain.value = P.lf; lfoW.gain.value = P.lw*0.4;
     V.apply();
@@ -990,13 +1017,15 @@
   function noteOn(n, vel){
     if(!ctx) return; if(ctx.state!=='running') ctx.resume();
     held.delete(n); stack = stack.filter(x=>x!==n); stack.push(n); lastNote = n;
-    if(!gate){ setPitch(n,true); triggerEnv(vel||100); } else { setPitch(n,false); velApply(vel||100); trackFilter(); }
+    if(!gate){ setPitch(n,true); triggerEnv(vel||100); }
+    else if(!P.leg){ setPitch(n,false); triggerEnv(vel||100); }          // legato desligado: cada nota redispara os envelopes
+    else { setPitch(n,false); velApply(vel||100); trackFilter(); }
     markKey(n,true);
   }
   function noteOff(n){ if(!ctx) return; if(sustainOn){ held.add(n); markKey(n,false); return; } realOff(n); }
   function realOff(n){ stack = stack.filter(x=>x!==n); markKey(n,false); if(stack.length===0) releaseEnv(); else { lastNote=stack[stack.length-1]; setPitch(lastNote,false); trackFilter(); } }
   function setSustain(on){ sustainOn=on; if(!on){ const hs=[...held]; held.clear(); hs.forEach(realOff); } }
-  function allOff(){ stack=[]; held.clear(); if(ctx&&gate) releaseEnv(); document.querySelectorAll('.k.d').forEach(k=>k.classList.remove('d')); }
+  function allOff(){ stack=[]; held.clear(); sustainOn=false; active.clear(); if(ctx&&gate) releaseEnv(); document.querySelectorAll('.k.d').forEach(k=>k.classList.remove('d')); }
 
   // primeiro toque em qualquer lugar liga o áudio e tenta o MIDI
   let triedMidi=false;
@@ -1029,8 +1058,12 @@
   // ====================== Osciloscópio e medidor ======================
   const cv=$('scope'), g=cv.getContext('2d'); let buf=null, fbuf=null, clipUntil=0;
   const mLeds=[...$('meter').children], TH=[-30,-20,-12,-6,0,3];
+  let idleFrames=0, frameNo=0;
   function draw(){
     requestAnimationFrame(draw);
+    if(document.hidden) return;
+    if((++frameNo&1) && idleFrames<3) return;              // 30 quadros por segundo bastam
+    if(idleFrames>=3){ if(!an) return; if(!fbuf) fbuf=new Float32Array(an.fftSize); if(an.getFloatTimeDomainData){ an.getFloatTimeDomainData(fbuf); let q=0; for(let i=0;i<fbuf.length;i+=8){ const a=Math.abs(fbuf[i]); if(a>q) q=a; } if(q<0.0015 && performance.now()>clipUntil) return; } idleFrames=0; }
     const W=cv.width,H=cv.height; g.clearRect(0,0,W,H);
     g.strokeStyle='rgba(127,233,255,.18)'; g.lineWidth=1; g.beginPath(); g.moveTo(0,H/2); g.lineTo(W,H/2); g.stroke();
     g.strokeStyle='#7fe9ff'; g.lineWidth=3; g.shadowColor='#7fe9ff'; g.shadowBlur=6; g.beginPath();
@@ -1046,6 +1079,7 @@
     g.stroke(); g.shadowBlur=0;
     const db = peak>0 ? 20*Math.log10(peak) : -100, now=performance.now();
     if(db>=TH[5]) clipUntil=now+700;
+    idleFrames = (peak<0.0015 && now>clipUntil) ? idleFrames+1 : 0;
     for(let i=0;i<6;i++){ const on = i<5 ? db>=TH[i] : now<clipUntil; if(mLeds[i]._on!==on){ mLeds[i]._on=on; mLeds[i].classList.toggle('on',on); } }
   }
   draw();
@@ -1094,14 +1128,18 @@
     else if(cmd===0xE0){ setBend((((d2<<7)|d1)-8192)/8192); }
     else if(cmd===0xB0){
       if(learnMode && learnTarget){ learnMsgIn('c',d1); return; }
-      if(actMap['c'+d1]){ const was=lastCC[d1]||0; lastCC[d1]=d2; if(d2>=64 && was<64) doAct(actMap['c'+d1]); return; }
+      if(actMap['c'+d1]){ const was=lastCC[d1]||0, now=performance.now(); lastCC[d1]=d2;      // dispara ao apertar; aceita botões que nunca mandam o valor de "soltou"
+        if(d2>=64 && (was<64 || now-(lastActT[d1]||0)>300)){ lastActT[d1]=now; doAct(actMap['c'+d1]); } return; }
       if(d1===64) setSustain(d2>=64); else if(d1===123||d1===120) allOff();
       else if(!applyCC(d1,d2) && d1===1) setMod(d2/127);
     }
   }
   let bleDev=null, bleName='';
+  let lastInputs=0;
   function refreshInputs(){
     const names=[]; if(midi) midi.inputs.forEach(inp=>{ inp.onmidimessage=onMsg; names.push(inp.name||'ENTRADA MIDI'); });
+    if(names.length<lastInputs){ allOff(); setBend(0); }      // controlador saiu: nenhuma nota fica presa
+    lastInputs=names.length;
     if(bleName) names.unshift(bleName+' (BLUETOOTH)');
     midiShort = names.length ? names[0].toUpperCase() : (midi ? 'SEM DISPOSITIVO' : midiShort); renderOled();
   }
@@ -1112,7 +1150,7 @@
   }
   // ---- MIDI por Bluetooth direto pela página (o pareamento nos ajustes do aparelho não cria a ligação MIDI)
   const BLE_SVC='03b80e5a-ede8-4b33-a751-6ce34ec4c700', BLE_CHR='7772e5db-3868-4112-a1a9-f2669d106bf3';
-  let bleStatus=0;
+  let bleStatus=0, bleShowAll=false; const bleHooked=new WeakSet();
   function bleParse(dv){
     const n=dv.byteLength; let i=1;                     // byte 0 é o cabeçalho do pacote
     while(i<n){
@@ -1135,14 +1173,16 @@
     if(!navigator.bluetooth){ say('Este navegador não conecta por Bluetooth',5000); return; }
     try{
       say('Escolha o SMK-25 na lista',6000);
-      const dev=await navigator.bluetooth.requestDevice({filters:[{services:[BLE_SVC]}]});
+      // alguns controladores não anunciam o serviço MIDI: na segunda tentativa a lista mostra todos os aparelhos
+      const dev=await navigator.bluetooth.requestDevice(bleShowAll ? {acceptAllDevices:true, optionalServices:[BLE_SVC]} : {filters:[{services:[BLE_SVC]}]});
       if(bleDev && bleDev!==dev && bleDev.gatt.connected) bleDev.gatt.disconnect();
       bleDev=dev; say('Conectando a '+(dev.name||'controlador')+'…',8000);
-      dev.addEventListener('gattserverdisconnected',()=>{ bleName=''; refreshInputs(); say('Bluetooth caiu, reconectando…',6000); allOff();
-        let tries=0; const again=()=>{ if(dev!==bleDev || tries++>=5) return; bleLink(dev).then(()=>say('Bluetooth reconectado')).catch(()=>setTimeout(again,1500)); }; setTimeout(again,800); });
-      await bleLink(dev); say('Conectado: '+bleName);
+      if(!bleHooked.has(dev)){ bleHooked.add(dev); dev.addEventListener('gattserverdisconnected',()=>{ if(dev!==bleDev) return; bleName=''; refreshInputs(); say('Bluetooth caiu, reconectando…',6000); allOff(); setBend(0); bleStatus=0;
+        let tries=0; const again=()=>{ if(dev!==bleDev || tries++>=5) return; bleLink(dev).then(()=>say('Bluetooth reconectado')).catch(()=>setTimeout(again,1500)); }; setTimeout(again,800); }); }
+      await bleLink(dev); bleShowAll=false; say('Conectado: '+bleName);
     }catch(err){
-      if(err && err.name==='NotFoundError') say('Nenhum controlador escolhido',4000);
+      if(err && err.name==='NotFoundError'){ bleShowAll=true; say('Não apareceu? Tente de novo: a lista mostrará todos',7000); }
+      else if(err && /GATT|Service|service/.test(err.message||'')) say('Esse aparelho não respondeu como MIDI Bluetooth',7000);
       else say('Bluetooth falhou: '+((err&&err.message)||err),7000);
     }
   }
@@ -1168,7 +1208,7 @@
   document.addEventListener('fullscreenchange',fsChange); document.addEventListener('webkitfullscreenchange',fsChange);
   let wake=null;
   async function keepAwake(){ try{ if('wakeLock' in navigator && !wake){ wake=await navigator.wakeLock.request('screen'); wake.addEventListener('release',()=>{wake=null;}); } }catch(e){} }
-  document.addEventListener('visibilitychange',()=>{ if(document.hidden) allOff(); else if(ctx) keepAwake(); });
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden) allOff(); else if(ctx){ keepAwake(); if(ctx.state!=='running') ctx.resume().catch(()=>{}); } });
   if('serviceWorker' in navigator && location.protocol==='https:'){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 
   drawSelectors(); renderOled();
