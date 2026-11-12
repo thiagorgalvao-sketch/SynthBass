@@ -238,6 +238,22 @@
     letter-spacing:.2px;font-variant-numeric:tabular-nums;color:#0f1113;text-shadow:0 1px 0 rgba(255,255,255,.75)}
   .kn label{color:#0f1113}
   .kn.sm output{font-size:10.5px;letter-spacing:0}
+  /* ===== painel compacto: mais altura para o teclado ===== */
+  :root{--k:clamp(36px,min(calc(5.4vw - 8px),calc((100vh - 400px)/6.6)),66px)}
+  .panel{padding-top:11px;padding-bottom:9px}
+  .top{margin-bottom:6px;gap:8px 12px}
+  .oled{height:56px} .oled canvas{height:42px}
+  .pnav .btn,.tools .btn{min-height:44px}
+  .sections{gap:10px} .sections + .sections{margin-top:6px}
+  .sec{padding-top:18px;padding-bottom:1px}
+  .kn label{margin-top:3px}
+  .seg.lever button,.seg.lever button.txt,.seg.lever button.on{height:18px}
+  .seg.lever button::after{height:18px}
+  .seg.lever button.on::after{background:radial-gradient(circle at 50% 50%,#fbfbfc 0 2.5px,#b4b8be 3.5px 4.5px,#55585e 5.5px,rgba(0,0,0,0) 6.5px),linear-gradient(90deg,#060607,#26282c 50%,#060607)}
+  .seg button,.octv{min-height:34px}
+  .stack{gap:2px}
+  .sel .cap2{margin-top:3px}
+  @media (max-height:560px){ :root{--k:clamp(32px,6vh,46px)} }
 
   /* tela em pé reduzida: mesmo painel do tablet deitado, com o teclado na proporção normal e o resto vazio */
   .dlg .box, #learnBar{zoom:var(--dz,1)} .dlg .box{max-height:calc(92vh / var(--dz,1))} #pList{max-height:calc(50vh / var(--dz,1))}
