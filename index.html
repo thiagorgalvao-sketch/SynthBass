@@ -29,6 +29,8 @@
 <meta name="apple-mobile-web-app-title" content="AURA Bass">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <meta name="theme-color" content="#0b0a09">
 <title>AURA Synth Bass</title>
 <style>
@@ -71,7 +73,8 @@
 
   /* cabeçalho */
   .top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:18px}
-  .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+  .brand{display:flex;align-items:center;gap:14px;margin-right:auto}
+  .brand .wordmark{display:block;height:clamp(24px,3.3vw,40px);width:auto;overflow:visible;filter:drop-shadow(0 1px 0 rgba(255,255,255,.7));flex:0 0 auto;align-self:center}
   .brand b{font-size:clamp(22px,3vw,34px);letter-spacing:.3em;font-weight:800;color:#1b1d20;text-shadow:0 1px 0 rgba(255,255,255,.75)}
   .brand span{font-size:clamp(9px,1.1vw,12px);letter-spacing:.42em;font-weight:700;color:var(--ink2);text-shadow:0 1px 0 rgba(255,255,255,.7);white-space:nowrap}
   .pnav{display:flex;align-items:stretch;gap:6px}
@@ -248,7 +251,7 @@
     <div class="panel">
       <span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
       <div class="top">
-        <div class="brand"><b>AURA</b><span>SYNTH BASS</span></div>
+        <div class="brand"><svg class="wordmark" viewBox="0 0 540 160" role="img" aria-label="AURA"><g fill="none" stroke="#1b1d20" stroke-width="22"><polyline points="20,148 70,16 120,148"/><path d="M160 16 V96 a40 40 0 0 0 80 0 V16"/><path d="M290 148 V27 H337 a32 32 0 0 1 0 64 H290 M334 91 L378 148"/><polyline points="420,148 470,16 520,148"/></g><g fill="none" stroke="#E8890C" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M40 104 C 52 84, 58 84, 70 104 S 88 124, 100 104"/><path d="M440 108 H456 V92 H484 V108 H500"/></g></svg><span>SYNTH BASS</span></div>
         <div class="pnav">
           <button id="pPrev" class="btn" aria-label="Preset anterior">◀</button>
           <div class="oled" id="oled" role="button" aria-label="Abrir lista de presets">
