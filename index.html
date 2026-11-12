@@ -167,7 +167,7 @@
   .play{flex:1;display:flex;gap:clamp(6px,1vw,12px);min-height:130px}
   .wheels{flex:0 0 auto;display:flex;gap:8px;padding:10px 4px 2px}
   .whc{display:flex;flex-direction:column;align-items:center;gap:5px;width:clamp(34px,4vw,46px)}
-  .whc small{font-size:8px;letter-spacing:1.5px;font-weight:800;color:#8d9097}
+  .whc small{font-size:9px;letter-spacing:1.5px;font-weight:800;color:#c9ccd1}
   .wh{flex:1;width:100%;border-radius:9px;background:#000;position:relative;touch-action:none;overflow:hidden;
     box-shadow:inset 0 0 0 2px #2a2c30,inset 0 6px 12px #000,0 1px 0 rgba(255,255,255,.12)}
   .roll{position:absolute;inset:4px 6px;border-radius:6px;
@@ -205,7 +205,7 @@
   body.learn #learnBar{display:flex}
   #learnBar .btn{min-height:40px}
 
-  body.perf #menuBtn{display:none}
+  body.perf #menuBtn{visibility:hidden}     /* guarda o lugar: nada se desloca ao entrar no modo tocar */
   /* ===== v7: painel impresso, chaves de alavanca e knobs pretos ===== */
   :root{--cheek:clamp(8px,1.3vw,18px)}
   .cheek{background:linear-gradient(90deg,#141517,#34363a 45%,#1c1d20 80%,#0d0e0f);box-shadow:inset 0 2px 2px rgba(255,255,255,.12),inset 0 -3px 4px rgba(0,0,0,.6)}
@@ -232,6 +232,30 @@
     letter-spacing:.2px;font-variant-numeric:tabular-nums;color:#0f1113;text-shadow:0 1px 0 rgba(255,255,255,.75)}
   .kn label{color:#0f1113}
   .kn.sm output{font-size:10.5px;letter-spacing:0}
+  /* ===== revisão de interface ===== */
+  .kn label{overflow:visible;line-height:1.35;margin-top:2px}                /* acentos (RUÍDO) não são mais cortados */
+  .kn.sm label{letter-spacing:.4px}
+  @media (max-width:1150px){ .kn label{letter-spacing:.8px} .kn.big label{letter-spacing:1.4px} }
+  .seg:not(.lever) button{color:#d4d7dc} .octv{font-weight:700}
+  body.locked .sections{opacity:.78}
+  .btn:focus-visible,.dial:focus-visible,.oled:focus-visible,.seg button:focus-visible,.dlg input:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+  .dial:focus:not(:focus-visible),.oled:focus:not(:focus-visible){outline:0}
+  .kl{position:absolute;left:0;right:0;bottom:9px;text-align:center;font-size:11px;font-weight:800;letter-spacing:.5px;color:#9a968d;pointer-events:none}
+  .k.w.d .kl{color:#5a3a00}
+  .dlg h4{margin:14px 0 6px;font-size:10px;letter-spacing:2.5px;color:var(--ink2)}
+  .dlg .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px} .dlg .grid2 .btn{margin-top:0;min-width:0}
+  .dlg .btn.row{min-height:44px}
+  .dlg .grid2 .btn.row{flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;min-height:54px;white-space:normal;text-align:left}
+  .dlg .grid2 .btn.row em{margin:0;font-size:9.5px;letter-spacing:1px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .dlg .grid2 .btn.row em#mVelSt,.dlg .grid2 .btn.row em#mBleSt,.dlg .grid2 .btn.row em#mMidiSt{opacity:1;color:var(--amber);font-size:9.5px}
+  .dlg .box{position:relative}
+  .dlg .x{position:sticky;top:0;float:right;z-index:2;width:44px;height:44px;margin:-8px -8px 0 8px;border-radius:50%;border:0;background:#17191c;color:#fff;font:700 20px/44px inherit;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+  .dlg .btn.primary{background:linear-gradient(180deg,#ffbe55,#f09a12);color:#1a1200;border-color:#7a4a00;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+  .dlg .btn.armed{background:linear-gradient(180deg,#b3361f,#6e1a0c);color:#fff}
+  .dlg .prow{margin-top:6px} .dlg .prow .btn{margin-top:0;min-height:44px} .dlg .prow .btn.star{width:44px;flex:0 0 44px}
+  .dlg .prow .btn.row em{color:var(--amber);opacity:1}
+  #pList{max-height:calc(56vh / var(--dz,1))}
+  .dlg .box{max-height:calc(94vh / var(--dz,1))}
   /* ===== painel compacto: mais altura para o teclado ===== */
   :root{--k:clamp(36px,min(calc(5.4vw - 8px),calc((100vh - 400px)/6.6)),66px)}
   .panel{padding-top:11px;padding-bottom:9px}
@@ -271,13 +295,13 @@
           <button id="pPrev" class="btn" aria-label="Preset anterior">◀</button>
           <div class="oled" id="oled" role="button" tabindex="0" aria-label="Abrir lista de presets">
             <canvas id="scope" width="192" height="96"></canvas>
-            <div class="txt mono"><b id="oBig">01 DEEP SUB BASS</b><span id="oSub">TOQUE NA TELA PARA LIGAR O ÁUDIO</span></div>
+            <div class="txt mono"><b id="oBig">01 DEEP SUB BASS</b><span id="oSub" aria-live="polite">TOQUE PARA LIGAR O ÁUDIO</span></div>
           </div>
           <button id="pNext" class="btn" aria-label="Próximo preset">▶</button>
         </div>
         <div class="tools">
           <button id="lockBtn" class="btn icon" title="Travar os controles da tela" aria-label="Travar controles"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
-          <button id="menuBtn" class="btn icon" title="Configurações" aria-label="Configurações"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg></button>
+          <button id="menuBtn" class="btn icon" title="Ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></button>
           <button id="fsBtn" class="btn icon" title="Modo tocar (tela cheia)" aria-label="Modo tocar"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
         </div>
       </div>
@@ -309,7 +333,7 @@
       <div class="sections">
         <div class="sec"><h2>MIXER</h2><div class="ctrls">
           <div id="sec_mix" class="ctrls"></div>
-          <div class="sel"><div class="seg lever" data-key="sw" data-num><button data-v="0" class="txt">SENO</button><button data-v="1" class="txt">QUAD</button></div><div class="cap2">SUB</div></div>
+          <div class="sel"><div class="seg lever" data-key="sw" data-num><button data-v="0" class="txt">SENO</button><button data-v="1" class="txt">QUAD</button></div><div class="cap2">TIPO</div></div>
         </div></div>
         <div class="sec"><h2>FILTRO</h2><div class="ctrls">
           <div id="sec_flt" class="ctrls"></div>
@@ -345,34 +369,43 @@
 
 <div id="learnBar"><span id="learnTxt">Toque em um knob ou numa seta de preset.</span><button id="learnDone" class="btn">Concluir</button></div>
 
-<div class="dlg" id="dlgList"><div class="box wide">
-  <h3>PRESETS</h3>
+<div class="dlg" id="dlgList" role="dialog" aria-modal="true" aria-label="Presets"><div class="box wide">
+  <button class="x" data-close aria-label="Fechar">×</button>
+  <h3 id="pTitle">PRESETS</h3>
   <div class="lrow"><input id="pSearch" type="search" placeholder="BUSCAR" autocomplete="off"><button id="favOnly" class="btn">★ Só favoritos</button></div>
   <div id="pList"></div>
   <button class="btn" data-close>Fechar</button>
   <p>Toque na estrela para marcar um favorito. Com “Só favoritos” ligado, as setas ◀ ▶ percorrem apenas os favoritos.</p>
 </div></div>
 
-<div class="dlg" id="dlgMenu"><div class="box">
-  <h3>CONFIGURAÇÕES</h3>
-  <button id="mSave" class="btn row">Salvar preset…</button>
-  <button id="mImport" class="btn row">Importar arquivos…<em>.syx · .mdp · .json</em></button>
-  <button id="mExport" class="btn row">Exportar meus presets e ajustes</button>
-  <button id="mLearn" class="btn row">Mapear knobs e botões do controlador</button>
-  <button id="mClear" class="btn row">Limpar mapeamento</button>
-  <button id="mVel" class="btn row">Sensibilidade ao toque<em id="mVelSt">—</em></button>
-  <button id="mBle" class="btn row">Conectar por Bluetooth<em id="mBleSt">—</em></button>
-  <button id="mMidi" class="btn row">Conectar MIDI do sistema (USB · Mac)<em id="mMidiSt">—</em></button>
+<div class="dlg" id="dlgMenu" role="dialog" aria-modal="true" aria-label="Ajustes"><div class="box wide">
+  <button class="x" data-close aria-label="Fechar">×</button>
+  <h3>AJUSTES</h3>
+  <h4>PRESETS</h4>
+  <div class="grid2">
+    <button id="mSave" class="btn row">Salvar preset…</button>
+    <button id="mImport" class="btn row">Importar arquivos…<em>.syx .mdp .json</em></button>
+    <button id="mExport" class="btn row">Exportar backup</button>
+  </div>
+  <h4>CONTROLADOR</h4>
+  <div class="grid2">
+    <button id="mBle" class="btn row">Bluetooth<em id="mBleSt">—</em></button>
+    <button id="mMidi" class="btn row">USB / MIDI do sistema<em id="mMidiSt">—</em></button>
+    <button id="mLearn" class="btn row">Mapear knobs e botões</button>
+    <button id="mClear" class="btn row">Limpar mapeamento</button>
+    <button id="mVel" class="btn row">Sensibilidade ao toque<em id="mVelSt">—</em></button>
+  </div>
   <button class="btn" data-close>Fechar</button>
   <p>Gire os knobs arrastando para cima e para baixo. Toque duplo volta ao valor salvo, marcado pelo ponto vermelho. Toque no visor para abrir a lista de presets. Pitch bend: +2 semitons acima, −12 abaixo. A roda MOD (CC1) adiciona vibrato. O cadeado trava os controles da tela.</p>
   <p id="engineInfo"></p>
   <input id="fileIn" type="file" accept=".syx,.mdp,.json,application/json" multiple hidden>
 </div></div>
 
-<div class="dlg" id="dlg"><div class="box">
+<div class="dlg" id="dlg" role="dialog" aria-modal="true" aria-label="Salvar preset"><div class="box">
+  <button class="x" data-close aria-label="Fechar">×</button>
   <h3>SALVAR PRESET</h3>
   <input id="pName" type="text" maxlength="18" autocomplete="off" autocapitalize="characters" placeholder="NOME DO PRESET">
-  <button id="dNew" class="btn">Salvar como novo</button>
+  <button id="dNew" class="btn primary">Salvar como novo</button>
   <button id="dOver" class="btn">Substituir</button>
   <button id="dDel" class="btn danger">Excluir</button>
   <button class="btn" data-close>Cancelar</button>
@@ -550,7 +583,7 @@
     const base=String(curPreset+1).padStart(2,'0')+(favs.has(pr.name)?'★':' ')+pr.name+(dirty?' *':'');
     $('oBig').textContent = flash || base;
     $('oled').classList.toggle('flash',!!flash);
-    $('oSub').textContent = learnMsg || tmpMsg || (ctx ? 'MIDI: '+midiShort : 'TOQUE NA TELA PARA LIGAR O ÁUDIO');
+    $('oSub').textContent = learnMsg || tmpMsg || (ctx ? 'MIDI: '+midiShort : 'TOQUE PARA LIGAR O ÁUDIO');
   }
   function flashParam(k){ flash=(k.full||k.label)+' '+k.fmt(P[k.id]); clearTimeout(flashT); flashT=setTimeout(()=>{flash=null;renderOled();},1200); renderOled(); }
   function say(t,dur){ tmpMsg=String(t).toUpperCase(); clearTimeout(tmpT); tmpT=setTimeout(()=>{tmpMsg=null;renderOled();},dur||3500); renderOled(); }
@@ -565,7 +598,7 @@
     {id:'pw2',  sec:'osc2', label:'LARGURA', full:'OSC 2 LARGURA', min:0.05, max:0.5, exp:1, fmt:pc, size:'sm'},
     {id:'pa',   sec:'penv', label:'QUANT.',  full:'AFINAÇÃO QUANT.', min:0, max:48, exp:2, fmt:v=>'+'+v.toFixed(1)+' st', size:'sm'},
     {id:'pd',   sec:'penv', label:'DECAY',   full:'AFINAÇÃO DECAY', min:0.01, max:1.5, exp:2, fmt:ms, size:'sm'},
-    {id:'vol',  sec:'out',  label:'VOLUME',  min:0, max:3, exp:1, fmt:v=>v.toFixed(2)+'×', size:'big'},
+    {id:'vol',  sec:'out',  label:'VOLUME',  min:0, max:3, exp:1, fmt:v=>Math.round(v*100)+'%', size:'big'},
     {id:'lvl',  sec:'mix',  label:'OSC 1',   min:0, max:1, exp:1, fmt:pc},
     {id:'l2',   sec:'mix',  label:'OSC 2',   min:0, max:1, exp:1, fmt:pc},
     {id:'sub',  sec:'mix',  label:'SUB',     min:0, max:1, exp:1, fmt:pc},
@@ -576,7 +609,7 @@
     {id:'kt',   sec:'flt',  label:'TECLADO', full:'FILTRO SEGUE TECLADO', min:0, max:1, exp:1, fmt:pc},
     {id:'drv',  sec:'flt',  label:'DRIVE',   min:0, max:1, exp:1, fmt:pc},
     {id:'lr',   sec:'lfo',  label:'RATE',    full:'LFO RATE',   min:0.1, max:30, exp:2, fmt:v=>v.toFixed(1)+' Hz', size:'sm'},
-    {id:'lp',   sec:'lfo',  label:'AFINAÇÃO',full:'LFO AFINAÇÃO', min:0, max:12, exp:2, fmt:v=>v.toFixed(2)+' st', size:'sm'},
+    {id:'lp',   sec:'lfo',  label:'TOM',     full:'LFO AFINAÇÃO', min:0, max:12, exp:2, fmt:v=>v.toFixed(2)+' st', size:'sm'},
     {id:'lf',   sec:'lfo',  label:'FILTRO',  full:'LFO FILTRO', min:0, max:3, exp:1, fmt:v=>v.toFixed(2)+' oit', size:'sm'},
     {id:'lw',   sec:'lfo',  label:'LARGURA', full:'LFO LARGURA', min:0, max:1, exp:1, fmt:pc, size:'sm'},
     {id:'fa',   sec:'fenv', label:'ATTACK',  full:'FILTRO ATTACK',  min:0.002, max:1, exp:3, fmt:ms, size:'sm'},
@@ -622,6 +655,11 @@
 
   // ====================== Janelas ======================
   const openD=id=>$(id).classList.add('open'), closeD=id=>$(id).classList.remove('open');
+  // ações que apagam pedem um segundo toque
+  function disarm(btn){ if(btn._armed){ clearTimeout(btn._armed); btn._armed=0; btn.textContent=btn._label; btn.classList.remove('armed'); } }
+  function confirmTap(btn,fn){ btn.addEventListener('click',()=>{
+    if(btn._armed){ disarm(btn); fn(); return; }
+    btn._label=btn.textContent; btn.textContent='Toque de novo para confirmar'; btn.classList.add('armed'); btn._armed=setTimeout(()=>disarm(btn),3500); }); }
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.dlg.open').forEach(d=>d.classList.remove('open')); });
   document.addEventListener('contextmenu',e=>{ if(e.target.closest && e.target.closest('.synth')) e.preventDefault(); });   // toque longo não abre menu do navegador
   document.querySelectorAll('.dlg').forEach(d=>{
@@ -712,7 +750,8 @@
 
   function drawList(){
     const box=$('pList'), q=($('pSearch').value||'').trim().toUpperCase(); box.innerHTML='';
-    $('favOnly').classList.toggle('cur',favOnly);
+    $('favOnly').classList.toggle('cur',favOnly); $('favOnly').setAttribute('aria-pressed',favOnly?'true':'false');
+    $('pTitle').textContent='PRESETS · '+PRESETS.length+(favs.size?' · ★ '+favs.size:'');
     PRESETS.forEach((p,i)=>{
       if(q && !p.name.toUpperCase().includes(q)) return;
       if(favOnly && !q && !favs.has(p.name)) return;
@@ -721,13 +760,14 @@
       s.addEventListener('click',()=>{ if(favs.has(p.name)) favs.delete(p.name); else favs.add(p.name); LS.set(FKEY,[...favs]); drawList(); renderOled(); });
       const b=document.createElement('button'); b.className='btn row mono'+(i===curPreset?' cur':'');
       b.textContent=String(i+1).padStart(2,'0')+'  '+p.name;
-      const em=document.createElement('em'); em.textContent=p.factory?'FÁBRICA':'MEU'; b.appendChild(em);
+      if(!p.factory){ const em=document.createElement('em'); em.textContent='MEU'; b.appendChild(em); }
+      if(i===curPreset) b.id='pCur';
       b.addEventListener('click',()=>{ loadPreset(i); closeD('dlgList'); });
       row.appendChild(s); row.appendChild(b); box.appendChild(row);
     });
     if(!box.children.length){ const e=document.createElement('p'); e.textContent=favOnly&&!q?'Nenhum favorito marcado ainda.':'Nenhum preset com esse nome.'; box.appendChild(e); }
   }
-  $('oled').addEventListener('click',()=>{ if(learnMode) return; $('pSearch').value=''; drawList(); openD('dlgList'); });
+  $('oled').addEventListener('click',()=>{ if(learnMode) return; $('pSearch').value=''; drawList(); openD('dlgList'); const c=$('pCur'); if(c) c.scrollIntoView({block:'center'}); });
   $('oled').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('oled').click(); } });
   $('pSearch').addEventListener('input',drawList);
   $('favOnly').addEventListener('click',()=>{ favOnly=!favOnly; LS.set(FOKEY,favOnly); drawList(); });
@@ -741,17 +781,18 @@
     return name;
   }
   function openSave(){
-    const cur=PRESETS[curPreset], isUser=!cur.factory;
+    const cur=PRESETS[curPreset], isUser=!cur.factory; disarm($('dDel'));
     pName.value=isUser?cur.name:'';
     $('dOver').style.display=isUser?'':'none'; $('dDel').style.display=isUser?'':'none';
     if(isUser){ $('dOver').textContent='Substituir “'+cur.name+'”'; $('dDel').textContent='Excluir “'+cur.name+'”'; }
     $('dNote').textContent=isUser?'Os presets ficam salvos neste aparelho.':'Presets de fábrica não são alterados: o seu ajuste é salvo como um preset novo, neste aparelho.';
-    openD('dlg');
+    openD('dlg'); if(!('ontouchstart' in window)) pName.focus();      // no toque, o teclado virtual só abre quando a pessoa tocar no campo
   }
+  pName.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('dNew').click(); } });
   function doneSave(msg){ closeD('dlg'); pName.blur(); say(msg); }
   $('dNew').addEventListener('click',()=>{ const p=snapshot(cleanName()); PRESETS.push(p); const ok=persistUser(); loadPreset(PRESETS.length-1); doneSave(ok?'Preset salvo':'Não gravou neste navegador'); });
   $('dOver').addEventListener('click',()=>{ if(PRESETS[curPreset].factory) return; { const old=PRESETS[curPreset].name, nn=cleanName(curPreset); if(favs.delete(old)){ favs.add(nn); LS.set(FKEY,[...favs]); } PRESETS[curPreset]=snapshot(nn); } const ok=persistUser(); loadPreset(curPreset); doneSave(ok?'Preset atualizado':'Não gravou neste navegador'); });
-  $('dDel').addEventListener('click',()=>{ if(PRESETS[curPreset].factory) return; if(favs.delete(PRESETS[curPreset].name)) LS.set(FKEY,[...favs]); PRESETS.splice(curPreset,1); persistUser(); loadPreset(Math.min(curPreset,PRESETS.length-1)); doneSave('Preset excluído'); });
+  confirmTap($('dDel'),()=>{ if(PRESETS[curPreset].factory) return; if(favs.delete(PRESETS[curPreset].name)) LS.set(FKEY,[...favs]); PRESETS.splice(curPreset,1); persistUser(); loadPreset(Math.min(curPreset,PRESETS.length-1)); doneSave('Preset excluído'); });
 
   // ====================== Exportar e importar ======================
   function exportAll(){
@@ -824,12 +865,12 @@
   $('fileIn').addEventListener('change',e=>{ const fs=[...e.target.files]; e.target.value=''; if(fs.length) importFiles(fs); });
 
   // ====================== Menu e cadeado ======================
-  $('menuBtn').addEventListener('click',()=>{ $('mMidiSt').textContent=midi?(midi.inputs.size+' ENTRADA(S)'):(navigator.requestMIDIAccess?'—':'SEM SUPORTE'); $('mBleSt').textContent=bleName?bleName.toUpperCase():(navigator.bluetooth?'TOQUE PARA CONECTAR':'SEM SUPORTE'); $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); $('engineInfo').textContent='Força da última nota recebida: '+lastVel+' de 127. Motor de som: '+(V&&V.kind==='worklet'?'completo':'básico (sem sync, largura de pulso, drive e envelope de afinação neste navegador)')+'.'; openD('dlgMenu'); });
+  $('menuBtn').addEventListener('click',()=>{ disarm($('mClear')); $('mMidiSt').textContent=midi?(midi.inputs.size?midi.inputs.size+' CONECTADO(S)':'NENHUM'):(navigator.requestMIDIAccess?'CONECTAR':'SEM SUPORTE'); $('mBleSt').textContent=bleName?bleName.toUpperCase():(navigator.bluetooth?'CONECTAR':'SEM SUPORTE'); $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); $('engineInfo').textContent='Força da última nota recebida: '+lastVel+' de 127. Motor de som: '+(V&&V.kind==='worklet'?'completo':'básico (sem sync, largura de pulso, drive e envelope de afinação neste navegador)')+'.'; openD('dlgMenu'); });
   $('mSave').addEventListener('click',()=>{ closeD('dlgMenu'); openSave(); });
   $('mImport').addEventListener('click',()=>{ closeD('dlgMenu'); $('fileIn').click(); });
   $('mExport').addEventListener('click',()=>{ closeD('dlgMenu'); exportAll(); });
   $('mLearn').addEventListener('click',()=>{ closeD('dlgMenu'); setLearn(true); });
-  $('mClear').addEventListener('click',()=>{ ccMap={}; actMap={}; LS.set(MAPKEY,ccMap); LS.set(ACTKEY,actMap); drawMap(); closeD('dlgMenu'); say('Mapeamento apagado'); });
+  confirmTap($('mClear'),()=>{ ccMap={}; actMap={}; LS.set(MAPKEY,ccMap); LS.set(ACTKEY,actMap); drawMap(); closeD('dlgMenu'); say('Mapeamento apagado'); });
   $('mMidi').addEventListener('click',()=>{ closeD('dlgMenu'); connectMidi(); });
   $('mBle').addEventListener('click',()=>{ closeD('dlgMenu'); connectBle(); });
   $('mVel').addEventListener('click',()=>{ velLevel=(velLevel+1)%VLEV.length; LS.set(VKEY,velLevel); $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); });
@@ -1097,15 +1138,18 @@
       const d=document.createElement('div'); d.dataset.i=n;
       if(!isBlack(n)){ d.className='k w'; d.style.left=(wi*w)+'%'; d.style.width=w+'%'; wi++; }
       else { d.className='k b'; d.style.left=(wi*w - w*0.3)+'%'; d.style.width=(w*0.6)+'%'; }
+      if(n%12===0){ const l=document.createElement('span'); l.className='kl'; d.appendChild(l); }
       kb.appendChild(d); KEYS[n]=d;
     }
   })();
   function markKey(n,on){ const k=KEYS[n-kbBase]; if(k) k.classList.toggle('d',on); }
+  function labelKeys(){ kb.querySelectorAll('.kl').forEach(l=>{ l.textContent='C'+((kbBase+ +l.parentNode.dataset.i)/12-1); }); }
+  labelKeys();
   function followKb(n){
     let b=kbBase; while(n<b) b-=12; while(n>b+24) b+=12;
     if(b===kbBase) return;
     document.querySelectorAll('.k.d').forEach(k=>k.classList.remove('d'));
-    kbBase=b; LS.set(KBKEY,kbBase); stack.forEach(x=>markKey(x,true));
+    kbBase=b; LS.set(KBKEY,kbBase); labelKeys(); stack.forEach(x=>markKey(x,true));
   }
   const active=new Map();
   function keyAt(x,y){ const el=document.elementFromPoint(x,y); return el&&el.dataset&&el.dataset.i!==undefined?kbBase+parseInt(el.dataset.i):null; }
@@ -1144,7 +1188,7 @@
     midiShort = names.length ? names[0].toUpperCase() : (midi ? 'SEM DISPOSITIVO' : midiShort); renderOled();
   }
   async function connectMidi(silent){
-    if(!navigator.requestMIDIAccess){ if(!bleName){ midiShort = navigator.bluetooth ? 'TOQUE NA ENGRENAGEM PARA CONECTAR' : 'SEM SUPORTE NESTE NAVEGADOR'; renderOled(); } if(silent!==true) say('Este navegador não tem MIDI por cabo'); return; }
+    if(!navigator.requestMIDIAccess){ if(!bleName){ midiShort = navigator.bluetooth ? 'ABRA OS AJUSTES PARA CONECTAR' : 'SEM SUPORTE NESTE NAVEGADOR'; renderOled(); } if(silent!==true) say('Este navegador não tem MIDI por cabo'); return; }
     try{ midi=await navigator.requestMIDIAccess({sysex:false}); midi.onstatechange=refreshInputs; refreshInputs(); if(silent!==true) say('MIDI: '+midiShort); }
     catch(err){ if(!bleName){ midiShort='PERMISSÃO DE MIDI NEGADA'; renderOled(); } }
   }
