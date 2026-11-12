@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!--
+  AURA Synth Bass — sintetizador de baixo para navegador.
+  Criação e direção: Thiago R. Galvão (GitHub: thiagorgalvao-sketch), 2026.
+  © 2026 Thiago R. Galvão. Todos os direitos reservados.
+  Proibida a cópia, redistribuição, modificação ou uso comercial sem autorização por escrito.
+  Código-fonte original; programa de computador protegido pela Lei 9.609/1998 e pela Lei 9.610/1998.
+  Projeto: https://github.com/thiagorgalvao-sketch/SynthBass
+-->
+<meta name="author" content="Thiago R. Galvão">
+<meta name="copyright" content="© 2026 Thiago R. Galvão. Todos os direitos reservados.">
 <meta charset="utf-8">
 <meta name="viewport" id="vp" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <script>
@@ -281,6 +291,7 @@
   @media (min-width:960px){ .sections{flex-wrap:nowrap} .sec{min-width:0} }
   @media (max-width:900px){ .ctrls{flex-wrap:wrap} }
   @media (max-width:700px){ :root{--k:clamp(50px,15vw,70px)} .brand{flex:1;min-width:0} .brand span{display:none} .pnav{order:3;width:100%} .oled{flex:1 1 0;width:auto;min-width:0} .wheels{display:none} }
+#dlgMenu .about{margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;letter-spacing:.06em;opacity:.62;text-align:center}
 </style>
 </head>
 <body>
@@ -398,6 +409,7 @@
   <button class="btn" data-close>Fechar</button>
   <p>Gire os knobs arrastando para cima e para baixo. Toque duplo volta ao valor salvo, marcado pelo ponto vermelho. Toque no visor para abrir a lista de presets. Pitch bend: +2 semitons acima, −12 abaixo. A roda MOD (CC1) adiciona vibrato. O cadeado trava os controles da tela.</p>
   <p id="engineInfo"></p>
+  <p class="about">AURA SYNTH BASS · criado por Thiago R. Galvão · © 2026 · Todos os direitos reservados</p>
   <input id="fileIn" type="file" accept=".syx,.mdp,.json,application/json" multiple hidden>
 </div></div>
 
@@ -414,6 +426,8 @@
 
 <script>
 (function(){
+  const AURA_AUTOR='Thiago R. Galvão', AURA_ANO=2026, AURA_ID='AURA-SB-TRG-2026';
+  try{ console.log('%cAURA SYNTH BASS%c © 2026 '+AURA_AUTOR+' — todos os direitos reservados','font-weight:700;color:#e8a33d','');}catch(e){}
   const $ = id => document.getElementById(id);
   const LS = { get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } }, set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } } };
 
@@ -796,7 +810,7 @@
 
   // ====================== Exportar e importar ======================
   function exportAll(){
-    const data={aura:1, presets:USER, favs:[...favs], ccMap:ccMap, actMap:actMap};
+    const data={aura:1, origem:AURA_ID+' © '+AURA_ANO+' '+AURA_AUTOR, presets:USER, favs:[...favs], ccMap:ccMap, actMap:actMap};
     try{
       const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));
       a.download='aura-synth-bass-backup.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);

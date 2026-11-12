@@ -8,3 +8,7 @@ Abra em: https://thiagorgalvao-sketch.github.io/SynthBass/
 - 111 presets de fábrica, favoritos, busca, presets do usuário com exportação e importação.
 - Importa presets `.syx` (Moog Sub Phatty) e `.mdp` (Minimoog Model D para iPad) por aproximação.
 - Mapeamento de knobs e botões do controlador, modo tocar em tela cheia e uso sem internet depois da primeira visita.
+
+## Autoria e direitos
+
+© 2026 Thiago R. Galvão. Todos os direitos reservados. Veja o arquivo LICENSE. Presets importados de terceiros não são cobertos por essa licença.
