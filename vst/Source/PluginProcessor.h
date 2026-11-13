@@ -22,6 +22,7 @@ public:
     int getNumPrograms() override { return aura::kNumFactory; }
     int getCurrentProgram() override { return program; }
     void setCurrentProgram(int i) override;
+    void changeProgramName(int, const juce::String&) override {}
     const juce::String getProgramName(int i) override { return (i >= 0 && i < aura::kNumFactory) ? juce::String(aura::kFactory[i].name) : juce::String(); }
     void getStateInformation(juce::MemoryBlock&) override;
     void setStateInformation(const void*, int) override;
