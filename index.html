@@ -213,7 +213,14 @@
   #learnBar{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;display:none;align-items:center;gap:12px;
     background:#17191c;color:#fff;border:1px solid var(--amber);border-radius:12px;padding:10px 12px 10px 16px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.7);max-width:calc(100vw - 24px)}
   body.learn #learnBar{display:flex}
-  #learnBar .btn{min-height:40px}
+  #learnBar .btn{min-height:40px;width:auto;margin:0}
+  #learnBar .btn.mapped{box-shadow:inset 0 -3px 0 var(--amber)} #learnBar .btn.target{box-shadow:0 0 0 3px var(--led),0 0 14px var(--led)}
+  .stack .seg:not(.lever) button{width:30px;min-width:30px}
+  .fxrow{display:grid;grid-template-columns:96px 1fr 76px;gap:10px;align-items:center;margin:10px 0;font-size:11px;font-weight:800;letter-spacing:1.5px}
+  .fxrow input[type=range]{width:100%;accent-color:#E8890C;min-height:34px;margin:0}
+  .fxrow output{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;text-align:right;letter-spacing:0;white-space:nowrap}
+  .fxrow .chips{grid-column:2 / span 2;display:flex;flex-wrap:wrap;gap:6px}
+  .dlg .btn.chip{width:auto;margin:0;min-height:38px;padding:0 12px;font-size:11px}
 
   body.perf #menuBtn{visibility:hidden}     /* guarda o lugar: nada se desloca ao entrar no modo tocar */
   /* ===== v7: painel impresso, chaves de alavanca e knobs pretos ===== */
@@ -334,7 +341,14 @@
           <div id="sec_osc2" class="ctrls"></div>
           <div class="sel"><div class="seg lever" data-key="sync" data-num><button data-v="1" class="txt">ON</button><button data-v="0" class="txt">OFF</button></div><div class="cap2">SYNC</div></div>
         </div></div>
-        <div class="sec"><h2>ENV. AFINAÇÃO</h2><div id="sec_penv" class="ctrls"></div></div>
+        <div class="sec"><h2>OSCILADOR 3</h2><div class="ctrls">
+          <div class="stack">
+            <div class="sel"><div class="seg lever" data-key="w3"><button data-v="square" title="Quadrada"><svg viewBox="0 0 30 18"><path d="M2 14V4h9v10h9V4h8"/></svg></button><button data-v="sawtooth" title="Dente de serra"><svg viewBox="0 0 30 18"><path d="M2 14L14 4v10L26 4v10"/></svg></button><button data-v="triangle" title="Triângulo"><svg viewBox="0 0 30 18"><path d="M2 14l6.5-10 6.5 10 6.5-10L28 14"/></svg></button></div><div class="cap2">ONDA</div></div>
+            <div class="sel"><div class="seg"><button id="o3Dn">−</button><span class="octv" id="o3V">0</span><button id="o3Up">+</button></div><div class="cap2">OITAVA ±</div></div>
+          </div>
+          <div id="sec_osc3" class="ctrls"></div>
+          <div class="sel"><div class="seg lever" data-key="k3" data-num><button data-v="1" class="txt">ON</button><button data-v="0" class="txt">OFF</button></div><div class="cap2">TECLADO</div></div>
+        </div></div>
         <div class="sec"><h2>SAÍDA</h2><div class="ctrls">
           <div id="sec_out" class="ctrls"></div>
           <div class="mwrap"><div class="meter" id="meter"><i></i><i></i><i></i><i></i><i class="a"></i><i class="r"></i></div><div class="cap2">NÍVEL</div></div>
@@ -345,6 +359,7 @@
         <div class="sec"><h2>MIXER</h2><div class="ctrls">
           <div id="sec_mix" class="ctrls"></div>
           <div class="sel"><div class="seg lever" data-key="sw" data-num><button data-v="0" class="txt">SENO</button><button data-v="1" class="txt">QUAD</button></div><div class="cap2">TIPO</div></div>
+          <div class="sel"><div class="seg lever" data-key="nc" data-num><button data-v="0" class="txt">BRANCO</button><button data-v="1" class="txt">ROSA</button></div><div class="cap2">COR</div></div>
         </div></div>
         <div class="sec"><h2>FILTRO</h2><div class="ctrls">
           <div id="sec_flt" class="ctrls"></div>
@@ -358,10 +373,15 @@
             <button data-v="triangle" title="Triângulo"><svg viewBox="0 0 30 18"><path d="M2 14l6.5-10 6.5 10 6.5-10L28 14"/></svg></button>
             <button data-v="square" title="Quadrada"><svg viewBox="0 0 30 18"><path d="M2 14V4h9v10h9V4h8"/></svg></button>
           </div><div class="cap2">ONDA</div></div>
+          <div class="sel"><div class="seg lever" data-key="lsr" data-num><button data-v="0" class="txt nar">LFO</button><button data-v="1" class="txt nar">OSC3</button><button data-v="2" class="txt nar">RAND</button></div><div class="cap2">FONTE</div></div>
           <div id="sec_lfo" class="ctrls"></div>
         </div></div>
+        <div class="sec"><h2>ENV. PITCH</h2><div id="sec_penv" class="ctrls"></div></div>
         <div class="sec"><h2>ENVELOPE DO FILTRO</h2><div id="sec_fenv" class="ctrls"></div></div>
-        <div class="sec"><h2>ENVELOPE DE VOLUME</h2><div id="sec_env" class="ctrls"></div></div>
+        <div class="sec"><h2>ENVELOPE DE VOLUME</h2><div class="ctrls">
+          <div id="sec_env" class="ctrls"></div>
+          <div class="sel"><div class="seg lever" data-key="ec" data-num><button data-v="0" class="txt nar">EXP</button><button data-v="1" class="txt nar">LIN</button></div><div class="cap2">CURVA</div></div>
+        </div></div>
       </div>
     </div>
     <div class="keysWrap">
@@ -378,7 +398,7 @@
   <div class="cheek"></div>
 </div>
 
-<div id="learnBar"><span id="learnTxt">Toque em um knob ou numa seta de preset.</span><button id="learnDone" class="btn">Concluir</button></div>
+<div id="learnBar"><span id="learnTxt">Toque em um knob ou numa seta de preset.</span><button id="lHold" class="btn">HOLD</button><button id="lArp" class="btn">ARP</button><button id="learnDone" class="btn">Concluir</button></div>
 
 <div class="dlg" id="dlgList" role="dialog" aria-modal="true" aria-label="Presets"><div class="box wide">
   <button class="x" data-close aria-label="Fechar">×</button>
@@ -398,6 +418,18 @@
     <button id="mImport" class="btn row">Importar arquivos…<em>.syx .mdp .json</em></button>
     <button id="mExport" class="btn row">Exportar backup</button>
   </div>
+  <h4>SOM</h4>
+  <div class="grid2">
+    <button id="mDly" class="btn row">Delay…<em id="mDlySt">—</em></button>
+    <button id="mArp" class="btn row">Arpejador…<em id="mArpSt">—</em></button>
+  </div>
+  <h4>TOQUE</h4>
+  <div class="grid2">
+    <button id="mPrio" class="btn row">Prioridade de nota<em id="mPrioSt">—</em></button>
+    <button id="mVelD" class="btn row">Força da tecla<em id="mVelDSt">—</em></button>
+    <button id="mAt" class="btn row">Aftertouch<em id="mAtSt">—</em></button>
+    <button id="mHold" class="btn row">Hold<em id="mHoldSt">—</em></button>
+  </div>
   <h4>CONTROLADOR</h4>
   <div class="grid2">
     <button id="mBle" class="btn row">Bluetooth<em id="mBleSt">—</em></button>
@@ -411,6 +443,22 @@
   <p id="engineInfo"></p>
   <p class="about">AURA SYNTH BASS · criado por Thiago R. Galvão · © 2026 · Todos os direitos reservados</p>
   <input id="fileIn" type="file" accept=".syx,.mdp,.json,application/json" multiple hidden>
+</div></div>
+
+<div class="dlg" id="dlgDly" role="dialog" aria-modal="true" aria-label="Delay"><div class="box">
+  <button class="x" data-close aria-label="Fechar">×</button>
+  <h3>DELAY</h3>
+  <div id="dlyBody"></div>
+  <button class="btn" data-close>Fechar</button>
+  <p>O delay é gravado junto com o preset. Mix em 0% deixa o delay desligado.</p>
+</div></div>
+
+<div class="dlg" id="dlgArp" role="dialog" aria-modal="true" aria-label="Arpejador"><div class="box">
+  <button class="x" data-close aria-label="Fechar">×</button>
+  <h3>ARPEJADOR</h3>
+  <div id="arpBody"></div>
+  <button class="btn" data-close>Fechar</button>
+  <p>Segure as teclas para o arpejador tocar as notas em sequência. Os ajustes valem para todos os presets. Dá para ligar e desligar pelo botão do controlador (Mapear knobs e botões).</p>
 </div></div>
 
 <div class="dlg" id="dlg" role="dialog" aria-modal="true" aria-label="Salvar preset"><div class="box">
@@ -436,14 +484,16 @@
   const DEF = {oct:-1, wave:'square', pw1:0.5, lvl:0.75, w2:'sawtooth', pw2:0.5, l2:0, d2:0, o2:0, sync:0, sub:0, sw:0, nz:0,
                cut:0.5, res:0, fenv:0, kt:0, drv:0, pol:4, glide:0, pa:0, pd:0.15,
                lr:5.5, lwv:'triangle', lp:0, lf:0, lw:0,
-               fa:0.002, fd:0.3, fs:0, fr:0.2, a:0.004, d:0.3, s:1, r:0.1, leg:1, vol:1.3};
+               fa:0.002, fd:0.3, fs:0, fr:0.2, a:0.004, d:0.3, s:1, r:0.1, leg:1, vol:1.3,
+               l3:0, w3:'sawtooth', o3:0, d3:0, k3:1, nc:0, ovl:0, lsr:0, ec:0, dt:0.3, df:0.35, dm:0};
   const PKEYS = Object.keys(DEF);
   // limites de cada parâmetro: qualquer preset (de fábrica, salvo ou importado) passa por aqui antes de chegar ao motor de som
   const LIM = {pw1:[0.05,0.5], pw2:[0.05,0.5], lvl:[0,1], l2:[0,1], sub:[0,1], nz:[0,1], cut:[0,1], res:[0,1], kt:[0,1], drv:[0,1], fs:[0,1], s:[0,1], lw:[0,1],
                d2:[-7,7], fenv:[0,4], glide:[0,0.4], pa:[0,48], pd:[0.01,1.5], lr:[0.1,30], lp:[0,12], lf:[0,3],
-               fa:[0.002,1], a:[0.002,1], fd:[0.02,2], d:[0.02,2], fr:[0.02,2], r:[0.02,2], vol:[0,3]};
-  const LIMI = {oct:[-3,1], o2:[-2,3], sync:[0,1], sw:[0,1], leg:[0,1], pol:[1,4]};
-  const ENUM = {wave:['square','sawtooth','triangle'], w2:['square','sawtooth','triangle'], lwv:['triangle','square']};
+               fa:[0.002,1], a:[0.002,1], fd:[0.02,2], d:[0.02,2], fr:[0.02,2], r:[0.02,2], vol:[0,3],
+               l3:[0,1], d3:[-7,7], ovl:[0,1], dt:[0.02,1], df:[0,0.9], dm:[0,1]};
+  const LIMI = {oct:[-3,1], o2:[-2,3], sync:[0,1], sw:[0,1], leg:[0,1], pol:[1,4], o3:[-3,3], k3:[0,1], nc:[0,1], lsr:[0,2], ec:[0,1]};
+  const ENUM = {wave:['square','sawtooth','triangle'], w2:['square','sawtooth','triangle'], w3:['square','sawtooth','triangle'], lwv:['triangle','square']};
   function norm(p){
     const o = Object.assign({}, DEF, p);
     if(p.fa===undefined && p.fx===undefined){ o.fa=o.a; o.fd=o.d; o.fs=o.s; o.fr=o.r; }   // presets de um envelope só
@@ -584,6 +634,9 @@
 
   let bend = 0, mod = 0, stack = [], sustainOn = false, held = new Set(), gate = false, learnMode = false, lastNote = 36;
   let midi=null, midiShort='—';
+  const PRIOK='aura_prio_v1', VDK='aura_veldest_v1', ATK='aura_at_dest_v1';
+  const pickI=(k,n,d)=>{ const v=LS.get(k,d); return (Number.isInteger(v)&&v>=0&&v<n)?v:d; };
+  let prio=pickI(PRIOK,3,0), velDest=pickI(VDK,3,0), atDest=pickI(ATK,4,0), atVal=0, pedalOn=false, holdOn=false;
 
   const cutHz = v => 30 * Math.pow(18000/30, v);
   const mtof = n => 440 * Math.pow(2, (n-69)/12);
@@ -597,7 +650,7 @@
     const base=String(curPreset+1).padStart(2,'0')+(favs.has(pr.name)?'★':' ')+pr.name+(dirty?' *':'');
     $('oBig').textContent = flash || base;
     $('oled').classList.toggle('flash',!!flash);
-    $('oSub').textContent = learnMsg || tmpMsg || (ctx ? 'MIDI: '+midiShort : 'TOQUE PARA LIGAR O ÁUDIO');
+    $('oSub').textContent = learnMsg || tmpMsg || (ctx ? 'MIDI: '+midiShort+(arp.on?' · ARP':'')+(holdOn?' · HOLD':'') : 'TOQUE PARA LIGAR O ÁUDIO');
   }
   function flashParam(k){ flash=(k.full||k.label)+' '+k.fmt(P[k.id]); clearTimeout(flashT); flashT=setTimeout(()=>{flash=null;renderOled();},1200); renderOled(); }
   function say(t,dur){ tmpMsg=String(t).toUpperCase(); clearTimeout(tmpT); tmpT=setTimeout(()=>{tmpMsg=null;renderOled();},dur||3500); renderOled(); }
@@ -610,13 +663,16 @@
     {id:'pw1',  sec:'osc',  label:'LARGURA', full:'OSC 1 LARGURA', min:0.05, max:0.5, exp:1, fmt:pc, size:'sm'},
     {id:'d2',   sec:'osc2', label:'DETUNE',  full:'OSC 2 DETUNE', min:-7, max:7, exp:1, fmt:st, tune:true},
     {id:'pw2',  sec:'osc2', label:'LARGURA', full:'OSC 2 LARGURA', min:0.05, max:0.5, exp:1, fmt:pc, size:'sm'},
+    {id:'d3',   sec:'osc3', label:'DETUNE',  full:'OSC 3 DETUNE', min:-7, max:7, exp:1, fmt:st, tune:true},
     {id:'pa',   sec:'penv', label:'QUANT.',  full:'AFINAÇÃO QUANT.', min:0, max:48, exp:2, fmt:v=>'+'+v.toFixed(1)+' st', size:'sm'},
     {id:'pd',   sec:'penv', label:'DECAY',   full:'AFINAÇÃO DECAY', min:0.01, max:1.5, exp:2, fmt:ms, size:'sm'},
     {id:'vol',  sec:'out',  label:'VOLUME',  min:0, max:3, exp:1, fmt:v=>Math.round(v*100)+'%', size:'big'},
     {id:'lvl',  sec:'mix',  label:'OSC 1',   min:0, max:1, exp:1, fmt:pc},
     {id:'l2',   sec:'mix',  label:'OSC 2',   min:0, max:1, exp:1, fmt:pc},
+    {id:'l3',   sec:'mix',  label:'OSC 3',   min:0, max:1, exp:1, fmt:pc},
     {id:'sub',  sec:'mix',  label:'SUB',     min:0, max:1, exp:1, fmt:pc},
     {id:'nz',   sec:'mix',  label:'RUÍDO',   min:0, max:1, exp:1, fmt:pc},
+    {id:'ovl',  sec:'mix',  label:'OVERLOAD', min:0, max:1, exp:1, fmt:pc},
     {id:'cut',  sec:'flt',  label:'CUTOFF',  min:0, max:1, exp:1, fmt:v=>Math.round(cutHz(v))+' Hz', size:'big'},
     {id:'res',  sec:'flt',  label:'RESSON.', full:'RESSONÂNCIA', min:0, max:1, exp:1, fmt:pc},
     {id:'fenv', sec:'flt',  label:'ENV AMT', min:0, max:4, exp:1, fmt:v=>v.toFixed(2)+' oit'},
@@ -682,7 +738,7 @@
 
   // ====================== Mapeamento MIDI (knobs e setas de preset) ======================
   const MAPKEY='aura_cc_map_v1', ACTKEY='aura_act_map_v1', RESERVED=[64,120,123];
-  const ACTS = {prev:{el:'pPrev',name:'PRESET ANTERIOR'}, next:{el:'pNext',name:'PRÓXIMO PRESET'}};
+  const ACTS = {prev:{el:'pPrev',name:'PRESET ANTERIOR'}, next:{el:'pNext',name:'PRÓXIMO PRESET'}, hold:{el:'lHold',name:'HOLD'}, arp:{el:'lArp',name:'ARPEJADOR'}};
   function cleanCC(m){ const o={}; if(m&&typeof m==='object') for(const c in m){ if(/^\d{1,3}$/.test(c) && +c<128 && KN[m[c]]) o[c]=m[c]; } return o; }
   function cleanAct(m){ const o={}; if(m&&typeof m==='object') for(const c in m){ if(/^[cn]\d{1,3}$/.test(c) && ACTS[m[c]]) o[c]=m[c]; } return o; }
   let ccMap = cleanCC(LS.get(MAPKEY,{})), actMap = cleanAct(LS.get(ACTKEY,{})), learnTarget=null;
@@ -702,7 +758,7 @@
   function setLearn(on){
     learnMode=on; if(on) setLocked(false);
     document.body.classList.toggle('learn',on); setTarget(null);
-    if(on) learnSay('Toque em um knob ou numa seta de preset');
+    if(on) learnSay('Toque em um knob, numa seta, HOLD ou ARP');
     else { learnSay(null); say((Object.keys(ccMap).length+Object.keys(actMap).length)+' controle(s) mapeado(s)'); }
   }
   function learnMsgIn(kind,num){       // kind: 'c' (CC) ou 'n' (nota)
@@ -723,7 +779,7 @@
     P[k.id]=toVal(k,val/127); knobChanged(k); return true;
   }
   const lastCC = {}, lastActT = {};
-  function doAct(a){ if(a==='prev') stepPreset(-1); else if(a==='next') stepPreset(1); }
+  function doAct(a){ if(a==='prev') stepPreset(-1); else if(a==='next') stepPreset(1); else if(a==='hold') setHold(!holdOn); else if(a==='arp') setArp(!arp.on); }
   $('learnDone').addEventListener('click',()=>setLearn(false));
   drawMap();
 
@@ -732,7 +788,7 @@
   function drawSelectors(){
     SEGS.forEach(sg=>{ const key=sg.dataset.key; sg.querySelectorAll('button').forEach(b=>{
       const v = sg.hasAttribute('data-num') ? +b.dataset.v : b.dataset.v; b.classList.toggle('on', P[key]===v); }); });
-    $('octV').textContent=sgn(P.oct); $('o2V').textContent=sgn(P.o2);
+    $('octV').textContent=sgn(P.oct); $('o2V').textContent=sgn(P.o2); $('o3V').textContent=sgn(P.o3);
   }
   const changed = (tune) => { drawSelectors(); applyAll(); if(tune) retune(); setDirty(true); };
   SEGS.forEach(sg=>{ const key=sg.dataset.key, num=sg.hasAttribute('data-num');
@@ -744,6 +800,8 @@
   $('octUp').addEventListener('click',()=>{ P.oct=Math.min(1,P.oct+1); changed(true); });
   $('o2Dn').addEventListener('click',()=>{ P.o2=Math.max(-2,P.o2-1); changed(true); });
   $('o2Up').addEventListener('click',()=>{ P.o2=Math.min(3,P.o2+1); changed(true); });
+  $('o3Dn').addEventListener('click',()=>{ P.o3=Math.max(-3,P.o3-1); changed(true); });
+  $('o3Up').addEventListener('click',()=>{ P.o3=Math.min(3,P.o3+1); changed(true); });
 
   // ====================== Troca, lista, favoritos e gravação de presets ======================
   function loadPreset(i){
@@ -761,6 +819,8 @@
   }
   $('pPrev').addEventListener('click',()=>{ if(learnMode) setTarget('act:prev'); else stepPreset(-1); });
   $('pNext').addEventListener('click',()=>{ if(learnMode) setTarget('act:next'); else stepPreset(1); });
+  $('lHold').addEventListener('click',()=>setTarget('act:hold'));
+  $('lArp').addEventListener('click',()=>setTarget('act:arp'));
 
   function drawList(){
     const box=$('pList'), q=($('pSearch').value||'').trim().toUpperCase(); box.innerHTML='';
@@ -850,7 +910,14 @@
       oct:Math.max(-3,Math.min(1,o1-4)), wave:W(q.vco0_wave_k), pw1:PW(q.vco0_wave_k), lvl:+on('vco0').toFixed(2),
       w2:W(q.vco1_wave_k), pw2:PW(q.vco1_wave_k), l2:+on('vco1').toFixed(2), d2:+((q.vco1_semi_k||0)*7).toFixed(2), o2:Math.max(-2,Math.min(3,o2-o1)), nz:+(on('noise')*0.6).toFixed(2), sub:0,
       cut:+Math.min(1,Math.max(0,Math.log(hz/30)/Math.log(600))).toFixed(3), res:+Math.min(0.9,q.vcf_regen_k||0).toFixed(2), fenv:+Math.min(4,(q.amount_contour_k||0)*8).toFixed(2),
-      kt:+((q.keyboard_control1_t>0?1/3:0)+(q.keyboard_control2_t>0?2/3:0)).toFixed(3), leg:q.ctrl_legato_t>0.5?1:0, glide:q.glide_enable_t>0.5?+(0.4*(q.syn_glide_k||0)).toFixed(3):0,
+      kt:+((q.keyboard_control1_t>0?1/3:0)+(q.keyboard_control2_t>0?2/3:0)).toFixed(3),
+      o3:Math.max(-3,Math.min(3,Math.round((q.vco2_range_k||4)-o1))), w3:W(q.vco2_wave_k), d3:+((q.vco2_semi_k||0)*7).toFixed(2), l3:+on('vco2').toFixed(2), k3:q.osc3_control_t>0.5||q.osc3_control_t===undefined?1:0,
+      nc:q.noise_color_t>0.5?1:0, ovl:+(q.mixer_enable_external_t>0.5?Math.min(1,q.mixer_gain_external_k||0):0).toFixed(2),
+      lr:+Math.min(30,Math.max(0.1,0.1*Math.pow(300,q.lfo_rate_k||0))).toFixed(2), lwv:q.lfo_wave_k>0.5?'square':'triangle',
+      lsr:(q.osc_modulation_t>0.5||q.filter_modulation_t>0.5)?(q.modulation_mix_k>0.5?2:(q.osc3_control_t>0.5||q.osc3_control_t===undefined?0:1)):0,
+      lp:q.osc_modulation_t>0.5?+Math.min(12,3*(q.syn_modWheel_k||0)).toFixed(2):0, lf:q.filter_modulation_t>0.5?+Math.min(3,2*(q.syn_modWheel_k||0)).toFixed(2):0,
+      pa:q.bender_on_t>0.5?+Math.min(48,24*(q.bender_depth_k||0)).toFixed(1):0, pd:q.bender_on_t>0.5?+Math.min(1.5,Math.max(0.01,mdTime(q.bender_time_k||0))).toFixed(3):0.15,
+      dm:q.delay_on_t>0.5?+Math.min(1,q.delay_mix_k||0).toFixed(2):0, df:+Math.min(0.9,q.delay_fed_k||0).toFixed(2), dt:+(0.02+0.98*(q.delay_time_k||0)).toFixed(3), leg:q.ctrl_legato_t>0.5?1:0, glide:q.glide_enable_t>0.5?+(0.4*(q.syn_glide_k||0)).toFixed(3):0,
       fa:+Math.min(1,Math.max(0.002,mdTime(q.adsr0_att_k||0))).toFixed(3), fd:fdec, fs:+(q.adsr0_sus_k||0).toFixed(2), fr:rel?fdec:0.03,
       a:+Math.min(1,Math.max(0.002,mdTime(q.adsr1_att_k||0))).toFixed(3), d:dec, s:+(q.adsr1_sus_k||0).toFixed(2), r:rel?dec:0.03, vol:1.4};
   }
@@ -879,7 +946,7 @@
   $('fileIn').addEventListener('change',e=>{ const fs=[...e.target.files]; e.target.value=''; if(fs.length) importFiles(fs); });
 
   // ====================== Menu e cadeado ======================
-  $('menuBtn').addEventListener('click',()=>{ disarm($('mClear')); $('mMidiSt').textContent=midi?(midi.inputs.size?midi.inputs.size+' CONECTADO(S)':'NENHUM'):(navigator.requestMIDIAccess?'CONECTAR':'SEM SUPORTE'); $('mBleSt').textContent=bleName?bleName.toUpperCase():(navigator.bluetooth?'CONECTAR':'SEM SUPORTE'); $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); const bl=ctx?Math.round(((ctx.baseLatency||0)+(ctx.outputLatency||0))*1000):0; $('engineInfo').textContent=(bl?'Atraso do áudio do aparelho: cerca de '+bl+' ms. ':'')+'Força da última nota recebida: '+lastVel+' de 127. Motor de som: '+(V&&V.kind==='worklet'?'completo':'básico (sem sync, largura de pulso, drive e envelope de afinação neste navegador)')+'.'; openD('dlgMenu'); });
+  $('menuBtn').addEventListener('click',()=>{ drawMenuSt(); disarm($('mClear')); $('mMidiSt').textContent=midi?(midi.inputs.size?midi.inputs.size+' CONECTADO(S)':'NENHUM'):(navigator.requestMIDIAccess?'CONECTAR':'SEM SUPORTE'); $('mBleSt').textContent=bleName?bleName.toUpperCase():(navigator.bluetooth?'CONECTAR':'SEM SUPORTE'); $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); const bl=ctx?Math.round(((ctx.baseLatency||0)+(ctx.outputLatency||0))*1000):0; $('engineInfo').textContent=(bl?'Atraso do áudio do aparelho: cerca de '+bl+' ms. ':'')+'Força da última nota recebida: '+lastVel+' de 127. Motor de som: '+(V&&V.kind==='worklet'?'completo':'básico (sem osciladores 3, sync, largura de pulso, drive, overload, ruído rosa e envelope de afinação neste navegador)')+'.'; openD('dlgMenu'); });
   $('mSave').addEventListener('click',()=>{ closeD('dlgMenu'); openSave(); });
   $('mImport').addEventListener('click',()=>{ closeD('dlgMenu'); $('fileIn').click(); });
   $('mExport').addEventListener('click',()=>{ closeD('dlgMenu'); exportAll(); });
@@ -902,9 +969,10 @@
       {name:'cutoff',defaultValue:1000,minValue:5,maxValue:22000,automationRate:'a-rate'},
       {name:'cutmod',defaultValue:0,automationRate:'a-rate'},
       {name:'pwmod',defaultValue:0,automationRate:'a-rate'} ]; }
-    constructor(){ super(); this.p1=0; this.p2=0; this.ps=0; this.y1=0; this.y2=0; this.y3=0; this.y4=0;
-      this.c={w1:2,w2:1,pw1:.5,pw2:.5,ratio:1,sync:0,l1:.75,l2:0,ls:0,sm:0,nz:0,res:0,drv:0,pol:4};
-      this.m={l1:.75,l2:0,ls:0,nz:0,res:0,drv:0,first:true};     // valores suavizados, para não estalar ao girar um knob
+    constructor(){ super(); this.p1=0; this.p2=0; this.ps=0; this.p3=0; this.y1=0; this.y2=0; this.y3=0; this.y4=0;
+      this.b0=0; this.b1=0; this.b2=0; this.hx=0; this.hy=0; this.mv=0; this.shT=0; this.shV=0; this.ha=Math.exp(-6.283185307*25/sampleRate);
+      this.c={w1:2,w2:1,pw1:.5,pw2:.5,ratio:1,sync:0,l1:.75,l2:0,ls:0,sm:0,nz:0,res:0,drv:0,pol:4,w3:1,r3:1,fx3:5,k3:1,l3:0,nc:0,ovl:0,lsr:0,lp:0,lf:0,lw:0,lr:5};
+      this.m={l1:.75,l2:0,ls:0,nz:0,l3:0,ovl:0,res:0,drv:0,first:true};     // valores suavizados, para não estalar ao girar um knob
       this.port.onmessage=e=>{ Object.assign(this.c,e.data); }; }
     blep(t,dt){ if(t<dt){ t/=dt; return t+t-t*t-1; } if(t>1-dt){ t=(t-1)/dt; return t*t+t+t+1; } return 0; }
     osc(w,p,dt,pw){
@@ -916,20 +984,25 @@
     process(inputs,outputs,pr){
       const o=outputs[0][0], n=o.length, c=this.c, sr=sampleRate;
       const F=pr.freq, D=pr.detune, PT=pr.pitch, C=pr.cutoff, CM=pr.cutmod, PW=pr.pwmod;
-      let p1=this.p1,p2=this.p2,ps=this.ps,y1=this.y1,y2=this.y2,y3=this.y3,y4=this.y4;
-      const m=this.m; if(m.first){ m.first=false; m.l1=c.l1; m.l2=c.l2; m.ls=c.ls; m.nz=c.nz; m.res=c.res; m.drv=c.drv; }
-      m.res+=0.35*(c.res-m.res); m.drv+=0.35*(c.drv-m.drv);
+      let p1=this.p1,p2=this.p2,ps=this.ps,p3=this.p3,y1=this.y1,y2=this.y2,y3=this.y3,y4=this.y4,b0=this.b0,b1=this.b1,b2=this.b2,hx=this.hx,hy=this.hy,mv=this.mv,shT=this.shT,shV=this.shV;
+      const lsr=c.lsr|0, ha=this.ha;
+      const m=this.m; if(m.first){ m.first=false; m.l1=c.l1; m.l2=c.l2; m.ls=c.ls; m.nz=c.nz; m.l3=c.l3; m.ovl=c.ovl; m.res=c.res; m.drv=c.drv; }
+      m.res+=0.35*(c.res-m.res); m.drv+=0.35*(c.drv-m.drv); m.ovl+=0.35*(c.ovl-m.ovl);
+      const ovg=m.ovl*0.6;
       const k=m.res*4.25, dg=1+m.drv*7, comp=1+k*0.55, og=1/(1+1.5*m.drv);
-      let l1=m.l1, l2=m.l2, ls=m.ls, nz=m.nz;
+      let l1=m.l1, l2=m.l2, ls=m.ls, nz=m.nz, l3=m.l3;
       for(let i=0;i<n;i++){
-        l1+=0.004*(c.l1-l1); l2+=0.004*(c.l2-l2); ls+=0.004*(c.ls-ls); nz+=0.004*(c.nz-nz);
-        const cents=(D.length>1?D[i]:D[0])+(PT.length>1?PT[i]:PT[0]);
+        l1+=0.004*(c.l1-l1); l2+=0.004*(c.l2-l2); ls+=0.004*(c.ls-ls); nz+=0.004*(c.nz-nz); l3+=0.004*(c.l3-l3);
+        let cents=(D.length>1?D[i]:D[0])+(PT.length>1?PT[i]:PT[0]); if(lsr>0) cents+=mv*c.lp*100;
         let f=(F.length>1?F[i]:F[0]); if(cents!==0) f*=Math.pow(2,cents/1200);
         const dt1=Math.min(f/sr,0.45), dt2=Math.min(f*c.ratio/sr,0.45);
-        const pm=(PW.length>1?PW[i]:PW[0]);
+        const pm=(PW.length>1?PW[i]:PW[0])+(lsr>0?mv*c.lw*0.4:0);
         p1+=dt1; let wrap=false; if(p1>=1){ p1-=1; wrap=true; }
         p2+=dt2; if(p2>=1) p2-=1;
         if(wrap && c.sync){ p2=p1*dt2/dt1; if(p2>=1) p2-=Math.floor(p2); }
+        let s3=0;
+        if(l3>1e-4 || lsr===1){ const f3=c.k3?f*c.r3:c.fx3, d3=Math.min(f3/sr,0.45); p3+=d3; if(p3>=1) p3-=1; s3=this.osc(c.w3,p3,d3,0.5); }
+        if(lsr===1) mv=s3; else if(lsr===2){ shT-=c.lr/sr; if(shT<=0){ shT+=1; shV=Math.random()*2-1; } mv=shV; }
         let s=0;
         if(l1>1e-4) s+=l1*this.osc(c.w1,p1,dt1,Math.min(0.95,Math.max(0.05,c.pw1+pm)));
         if(l2>1e-4) s+=l2*this.osc(c.w2,p2,dt2,Math.min(0.95,Math.max(0.05,c.pw2+pm)));
@@ -937,18 +1010,22 @@
           if(c.sm){ ps+=dt1*0.5; if(ps>=1) ps-=1; s+=ls*0.75*((ps<0.5?1:-1)+this.blep(ps,dt1*0.5)-this.blep(ps<0.5?ps+0.5:ps-0.5,dt1*0.5)); }
           else { ps+=dt1; if(ps>=1) ps-=1; s+=ls*Math.sin(6.283185307*ps); }
         }
-        if(nz>1e-4) s+=nz*0.6*(Math.random()*2-1);
+        if(l3>1e-4) s+=l3*s3;
+        if(nz>1e-4){ const w=Math.random()*2-1; let nv=w; if(c.nc){ b0=0.99765*b0+w*0.0990460; b1=0.96300*b1+w*0.2965164; b2=0.57000*b2+w*1.0526913; nv=(b0+b1+b2+w*0.1848)*0.3; } s+=nz*0.6*nv; }
         s*=0.6;
-        const cm=(CM.length>1?CM[i]:CM[0]);
+        if(ovg>1e-4) s+=ovg*hy;
+        const cm=(CM.length>1?CM[i]:CM[0])+(lsr>0?mv*c.lf:0);
         let fc=(C.length>1?C[i]:C[0]); if(cm!==0) fc*=Math.pow(2,cm);
         if(fc>sr*0.3) fc=sr*0.3; else if(fc<5) fc=5;
         const g=1-Math.exp(-6.283185307*fc/sr);
         const x=1.4286*Math.tanh(0.7*s*dg)*comp-k*Math.tanh(y4)+1e-9*(Math.random()-0.5);
         y1+=g*(x-y1); y2+=g*(y1-y2); y3+=g*(y2-y3); y4+=g*(y3-y4);
-        o[i]=(c.pol===1?y1:(c.pol===2?y2:(c.pol===3?y3:y4)))*og;
+        const ov=(c.pol===1?y1:(c.pol===2?y2:(c.pol===3?y3:y4)))*og; o[i]=ov;
+        hy=ha*(hy+ov-hx); hx=ov;       // retorno da saída sem componente contínua (overload)
       }
       if(Math.abs(y4)<1e-18){ y1=y2=y3=y4=0; }
-      m.l1=l1; m.l2=l2; m.ls=ls; m.nz=nz;
+      m.l1=l1; m.l2=l2; m.ls=ls; m.nz=nz; m.l3=l3;
+      this.b0=b0;this.b1=b1;this.b2=b2;this.hx=hx;this.hy=Math.abs(hy)<1e-18?0:hy;this.mv=mv;this.shT=shT;this.shV=shV;this.p3=p3;
       this.p1=p1;this.p2=p2;this.ps=ps;this.y1=y1;this.y2=y2;this.y3=y3;this.y4=y4; return true;
     }
   }
@@ -980,9 +1057,9 @@
   registerProcessor('aura-comp',AuraComp);
 `;
 
-  let ctx=null, amp=null, velG=null, master=null, comp=null, an=null, lfo=null, lfoP=null, lfoC=null, lfoW=null, V=null;
+  let ctx=null, amp=null, velG=null, master=null, comp=null, an=null, lfo=null, lfoP=null, lfoC=null, lfoW=null, V=null, atG=null, dly=null, dlyFb=null, dlyW=null;
   const WI = {triangle:0, sawtooth:1, square:2};
-  const ratio2 = () => Math.pow(2, P.o2 + P.d2/12);
+  const ratio2 = () => Math.pow(2, P.o2 + P.d2/12), ratio3 = () => Math.pow(2, P.o3 + P.d3/12);
 
   // --- motor básico (reserva): osciladores e filtros nativos do navegador
   function nativeVoice(){
@@ -994,7 +1071,7 @@
     osc.connect(g1); sub.connect(gs); osc2.connect(g2); [g1,gs,g2,gn].forEach(g=>g.connect(f1)); f1.connect(f2); f2.connect(amp);
     [osc,sub,osc2].forEach(o=>{ o.frequency.value=55; o.start(); }); noise.start();
     lfoP.connect(osc.detune); lfoP.connect(sub.detune); lfoP.connect(osc2.detune);
-    const lc=ctx.createGain(); lc.gain.value=1200; lfoC.connect(lc); lc.connect(f1.detune); lc.connect(f2.detune);
+    const lc=ctx.createGain(); lc.gain.value=1200; lfoC.connect(lc); lc.connect(f1.detune); lc.connect(f2.detune); if(atG) atG.connect(lc);
     return { kind:'native',
       get cut(){ return P.pol<=2 ? [f1.frequency] : [f1.frequency,f2.frequency]; },
       detune(c){ osc.detune.value=c; sub.detune.value=c; osc2.detune.value=c; },
@@ -1004,19 +1081,20 @@
         f1.Q.value=0.707+P.res*P.res*12; f2.Q.value=0.707+P.res*1.5;
         if(P.pol<=2){ f2.frequency.cancelScheduledValues(ctx.currentTime); f2.frequency.value=20000; f2.Q.value=0.5; } },
       pitchEnv(){},
-      kill(){ try{ [osc,sub,osc2,noise].forEach(o=>o.stop()); f2.disconnect(); lfoP.disconnect(); lfoC.disconnect(); lc.disconnect(); }catch(e){} }
+      kill(){ try{ [osc,sub,osc2,noise].forEach(o=>o.stop()); f2.disconnect(); lfoP.disconnect(); lfoC.disconnect(); lc.disconnect(); if(atG) atG.disconnect(lc); }catch(e){} }
     };
   }
   // --- motor completo
   function workletVoice(){
     const node=new AudioWorkletNode(ctx,'aura-voice',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[1]});
     const q=n=>node.parameters.get(n);
-    node.connect(amp); lfoP.connect(q('detune')); lfoC.connect(q('cutmod')); lfoW.connect(q('pwmod'));
+    node.connect(amp); lfoP.connect(q('detune')); lfoC.connect(q('cutmod')); lfoW.connect(q('pwmod')); if(atG) atG.connect(q('cutmod'));
     return { kind:'worklet',
       get cut(){ return [q('cutoff')]; },
       detune(c){ q('detune').value=c; },
       freq(fr,tc,now){ const t=ctx.currentTime, p=q('freq'); p.cancelScheduledValues(t); if(now) p.setValueAtTime(fr,t); else p.setTargetAtTime(fr,t,tc); },
-      apply(){ node.port.postMessage({w1:WI[P.wave],w2:WI[P.w2],pw1:P.pw1,pw2:P.pw2,ratio:ratio2(),sync:P.sync?1:0,l1:P.lvl,l2:P.l2,ls:P.sub,sm:P.sw?1:0,nz:P.nz,res:P.res,drv:P.drv,pol:P.pol}); },
+      apply(){ node.port.postMessage({w1:WI[P.wave],w2:WI[P.w2],pw1:P.pw1,pw2:P.pw2,ratio:ratio2(),sync:P.sync?1:0,l1:P.lvl,l2:P.l2,ls:P.sub,sm:P.sw?1:0,nz:P.nz,res:P.res,drv:P.drv,pol:P.pol,
+        w3:WI[P.w3],r3:ratio3(),fx3:P.lr*Math.pow(2,P.d3/12),k3:P.k3,l3:P.l3,nc:P.nc,ovl:P.ovl,lsr:P.lsr,lp:P.lp,lf:P.lf,lw:P.lw,lr:P.lr}); },
       pitchEnv(t){ const p=q('pitch'); p.cancelScheduledValues(t); if(P.pa>0.05){ p.setValueAtTime(P.pa*100,t); p.setTargetAtTime(0,t,Math.max(P.pd,0.01)/3); } else p.setValueAtTime(0,t); },
       kill(){}
     };
@@ -1038,6 +1116,11 @@
     velG = ctx.createGain(); amp.connect(comp); comp.connect(velG); velG.connect(master); master.connect(an); master.connect(pre); pre.connect(sh); sh.connect(ctx.destination);
     lfo = ctx.createOscillator(); lfoP = ctx.createGain(); lfoC = ctx.createGain(); lfoW = ctx.createGain();
     lfoP.gain.value = lfoC.gain.value = lfoW.gain.value = 0; lfo.connect(lfoP); lfo.connect(lfoC); lfo.connect(lfoW); lfo.start();
+    atG = ctx.createGain(); atG.gain.value = 0; try{ const cs=ctx.createConstantSource(); cs.connect(atG); cs.start(); }catch(e){}
+    // delay em paralelo: o som direto não passa por ele, então não soma atraso
+    dly=ctx.createDelay(1.5); dlyW=ctx.createGain(); dlyW.gain.value=0; dlyFb=ctx.createGain(); dlyFb.gain.value=0;
+    const dlp=ctx.createBiquadFilter(); dlp.type='lowpass'; dlp.frequency.value=4200;
+    master.connect(dly); dly.connect(dlp); dlp.connect(dlyFb); dlyFb.connect(dly); dlp.connect(dlyW); dlyW.connect(pre);
     V = nativeVoice(); applyAll(); V.cut.forEach(p=>{ p.value=baseCut(); }); renderOled();
     if(ctx.audioWorklet && window.AudioWorkletNode){
       const url = URL.createObjectURL(new Blob([WORKLET],{type:'application/javascript'}));
@@ -1053,14 +1136,18 @@
   }
   function applyAll(){
     if(!ctx) return;
-    master.gain.setTargetAtTime(P.vol, ctx.currentTime, 0.012);      // sem degraus ao girar o volume
+    master.gain.setTargetAtTime(P.vol*(1+(atDest===3?atVal*0.6:0)), ctx.currentTime, 0.012);      // sem degraus ao girar o volume
     lfo.type = P.lwv; lfo.frequency.value = P.lr;
-    lfoC.gain.value = P.lf; lfoW.gain.value = P.lw*0.4;
+    const ext = V.kind==='worklet' && P.lsr>0;      // fonte OSC3 ou RAND: a modulação é feita dentro do motor
+    lfoC.gain.value = ext?0:P.lf; lfoW.gain.value = ext?0:P.lw*0.4;
+    if(dly){ const t=ctx.currentTime; dly.delayTime.setTargetAtTime(P.dt,t,0.05); dlyFb.gain.setTargetAtTime(P.df,t,0.03); dlyW.gain.setTargetAtTime(P.dm*0.9,t,0.03); }
     V.apply();
     if(!gate){ const t=ctx.currentTime; V.cut.forEach(p=>{ p.cancelScheduledValues(t); p.setValueAtTime(baseCut(),t); }); }
     updateDetune();
   }
-  function updateDetune(){ if(!ctx) return; V.detune(bend>=0 ? bend*200 : bend*1200); lfoP.gain.value = P.lp*100 + mod*60; }
+  function updateDetune(){ if(!ctx) return; V.detune(bend>=0 ? bend*200 : bend*1200); const ext = V.kind==='worklet' && P.lsr>0; lfoP.gain.value = (ext?0:P.lp*100) + mod*60 + (atDest===1?atVal*80:0); }
+  function applyAT(){ if(!ctx) return; const t=ctx.currentTime; if(atG) atG.gain.setTargetAtTime(atDest===2?atVal*1.5:0,t,0.02); master.gain.setTargetAtTime(P.vol*(1+(atDest===3?atVal*0.6:0)),t,0.02); updateDetune(); }
+  function setAT(v){ atVal=Math.max(0,Math.min(1,v)); applyAT(); }
   const noteFreq = n => mtof(n + P.oct*12);
   // corte base do filtro, com acompanhamento de teclado (referência: Dó 1 soando)
   const baseCut = () => Math.min(cutHz(P.cut) * Math.pow(2, (P.kt||0) * ((lastNote + P.oct*12) - 24) / 12), 20000);
@@ -1073,22 +1160,23 @@
   function velApply(vel){
     const s=VLEV[velLevel][1], v=Math.max(1,Math.min(127,vel))/127; lastVel=vel;
     const curve = x => (1-s) + s*Math.pow(x,1.7);
-    velBright = Math.pow(2, s*(v-VREF)*2.4);                    // até cerca de ±1 oitava de brilho
-    velG.gain.setTargetAtTime(0.883*curve(v)/curve(VREF), ctx.currentTime, 0.004);
+    velBright = velDest===1 ? 1 : Math.pow(2, s*(v-VREF)*2.4);   // até cerca de ±1 oitava de brilho
+    velG.gain.setTargetAtTime(velDest===2 ? 0.883 : 0.883*curve(v)/curve(VREF), ctx.currentTime, 0.004);
   }
   function triggerEnv(vel){
     velApply(vel);
     const t = ctx.currentTime, peak = 1, att=Math.max(P.a,0.002), fa=Math.max(P.fa,0.002);
-    holdParam(amp.gain,t); amp.gain.linearRampToValueAtTime(peak, t+att); amp.gain.setTargetAtTime(peak*P.s, t+att, P.d/3);
+    holdParam(amp.gain,t); amp.gain.linearRampToValueAtTime(peak, t+att);
+    if(P.ec) amp.gain.linearRampToValueAtTime(Math.max(peak*P.s,0.0001), t+att+P.d); else amp.gain.setTargetAtTime(peak*P.s, t+att, P.d/3);
     const base = baseCut(), top = Math.min(base*velBright*Math.pow(2,P.fenv),20000), susF = Math.min(base*velBright*Math.pow(2,P.fenv*P.fs),20000);
-    V.cut.forEach(f=>{ holdParam(f,t); f.setValueAtTime(Math.min(base*velBright,20000),t); f.linearRampToValueAtTime(top,t+fa); f.setTargetAtTime(susF,t+fa,P.fd/3); });
+    V.cut.forEach(f=>{ holdParam(f,t); f.setValueAtTime(Math.min(base*velBright,20000),t); f.linearRampToValueAtTime(top,t+fa); if(P.ec) f.exponentialRampToValueAtTime(Math.max(susF,5),t+fa+P.fd); else f.setTargetAtTime(susF,t+fa,P.fd/3); });
     V.pitchEnv(t);
     gate = true;
   }
   function releaseEnv(){
     const t = ctx.currentTime, base = baseCut();
-    holdParam(amp.gain,t); amp.gain.setTargetAtTime(0,t,P.r/3);
-    V.cut.forEach(f=>{ holdParam(f,t); f.setTargetAtTime(base,t,P.fr/3); });
+    holdParam(amp.gain,t); if(P.ec) amp.gain.linearRampToValueAtTime(0,t+P.r); else amp.gain.setTargetAtTime(0,t,P.r/3);
+    V.cut.forEach(f=>{ holdParam(f,t); if(P.ec) f.exponentialRampToValueAtTime(Math.max(base,5),t+P.fr); else f.setTargetAtTime(base,t,P.fr/3); });
     gate = false;
   }
   function setPitch(n, immediate){ V.freq(noteFreq(n), P.glide/3, immediate || P.glide<0.002); }
@@ -1097,18 +1185,72 @@
     V.cut.forEach(f=>{ holdParam(f,t); f.setTargetAtTime(susF,t,0.03); });
   }
   function retune(){ if(ctx && stack.length) setPitch(stack[stack.length-1], true); }
-  function noteOn(n, vel){
+  const pickNote = () => !stack.length ? null : (prio===1 ? Math.min(...stack) : (prio===2 ? Math.max(...stack) : stack[stack.length-1]));
+  function coreOn(n, vel, fromArp){
     if(!ctx) return; if(ctx.state!=='running') ctx.resume();
-    held.delete(n); stack = stack.filter(x=>x!==n); stack.push(n); lastNote = n;
+    held.delete(n); stack = stack.filter(x=>x!==n); stack.push(n);
+    if(!fromArp) markKey(n,true);
+    if(gate && pickNote()!==n) return;                    // prioridade grave/aguda: esta nota não assume a voz
+    lastNote = n;
     if(!gate){ setPitch(n,true); triggerEnv(vel||100); }
     else if(!P.leg){ setPitch(n,false); triggerEnv(vel||100); }          // legato desligado: cada nota redispara os envelopes
     else { setPitch(n,false); velApply(vel||100); trackFilter(); }
-    markKey(n,true);
   }
-  function noteOff(n){ if(!ctx) return; if(sustainOn){ held.add(n); markKey(n,false); return; } realOff(n); }
-  function realOff(n){ stack = stack.filter(x=>x!==n); markKey(n,false); if(stack.length===0) releaseEnv(); else { lastNote=stack[stack.length-1]; setPitch(lastNote,false); trackFilter(); } }
-  function setSustain(on){ sustainOn=on; if(!on){ const hs=[...held]; held.clear(); hs.forEach(realOff); } }
-  function allOff(){ stack=[]; held.clear(); sustainOn=false; active.clear(); if(ctx&&gate) releaseEnv(); document.querySelectorAll('.k.d').forEach(k=>k.classList.remove('d')); }
+  function coreOff(n, fromArp){ realOff(n, fromArp); }
+  function realOff(n, fromArp){
+    stack = stack.filter(x=>x!==n); if(!fromArp) markKey(n,false);
+    if(stack.length===0) releaseEnv();
+    else { const t=pickNote(); if(t!==lastNote){ lastNote=t; setPitch(t,false); trackFilter(); } }
+  }
+  function noteOn(n, vel){ if(arp.on) arpPress(n,vel); else coreOn(n,vel); }
+  function noteOff(n){ if(!ctx) return; if(arp.on){ arpRelease(n); return; } if(sustainOn){ held.add(n); markKey(n,false); return; } realOff(n); }
+  function syncSustain(){ const on=pedalOn||holdOn; if(on===sustainOn) return; sustainOn=on; if(!on){ const hs=[...held]; held.clear(); hs.forEach(n=>realOff(n)); } }
+  function setSustain(on){ pedalOn=on; syncSustain(); }
+  function setHold(on){ holdOn=on; syncSustain(); renderOled(); drawMenuSt(); }
+  function allOff(){ arpSilence(); arp.notes=[]; arp.down.clear(); stack=[]; held.clear(); pedalOn=holdOn=false; sustainOn=false; active.clear(); if(ctx&&gate) releaseEnv(); document.querySelectorAll('.k.d').forEach(k=>k.classList.remove('d')); renderOled(); }
+
+  // ---- arpejador (configuração global, não faz parte do preset)
+  const AKEY='aura_arp_v1', ADIV=[1,0.5,1/3,0.25], ADIVN=['1/4','1/8','1/8T','1/16'], APAT=['SOBE','DESCE','SOBE E DESCE','ALEATÓRIO','ORDEM'];
+  const arp = {on:false, pat:0, div:1, oct:1, bpm:100, gate:0.6, latch:false, notes:[], down:new Set(), k:0, cur:null, vel:100, t0:0, timer:0, gt:0};
+  { const sv=LS.get(AKEY,{}); if(sv && typeof sv==='object'){ const ri=(k,lo,hi)=>{ if(Number.isInteger(sv[k])&&sv[k]>=lo&&sv[k]<=hi) arp[k]=sv[k]; }; ri('pat',0,4); ri('div',0,3); ri('oct',1,3);
+    if(Number.isFinite(sv.bpm)) arp.bpm=Math.min(240,Math.max(40,sv.bpm)); if(Number.isFinite(sv.gate)) arp.gate=Math.min(0.95,Math.max(0.1,sv.gate)); arp.latch=!!sv.latch; } }
+  const arpSave = () => LS.set(AKEY,{pat:arp.pat,div:arp.div,oct:arp.oct,bpm:arp.bpm,gate:arp.gate,latch:arp.latch});
+  function arpSeq(){ const b=arp.pat===4?arp.notes.slice():arp.notes.slice().sort((a,c)=>a-c), o=[]; for(let i=0;i<arp.oct;i++) b.forEach(n=>o.push(n+12*i)); return o; }
+  function arpIdx(L){
+    const k=arp.k++;
+    if(L<2) return 0;
+    if(arp.pat===3) return Math.floor(Math.random()*L);
+    if(arp.pat===1) return L-1-(k%L);
+    if(arp.pat===2){ const c=2*L-2, j=k%c; return j<L?j:c-j; }
+    return k%L;
+  }
+  function arpSilence(){ clearTimeout(arp.timer); clearTimeout(arp.gt); arp.timer=0; if(arp.cur!==null){ const c=arp.cur; arp.cur=null; if(ctx) coreOff(c,true); } }
+  function arpTick(){
+    arp.timer=0;
+    if(!arp.on || !arp.notes.length){ arpSilence(); return; }
+    const sq=arpSeq(), n=sq[arpIdx(sq.length)], step=60000/arp.bpm*ADIV[arp.div];
+    if(arp.cur!==null){ const c=arp.cur; arp.cur=null; coreOff(c,true); }
+    coreOn(n,arp.vel,true); arp.cur=n;
+    clearTimeout(arp.gt); arp.gt=setTimeout(()=>{ if(arp.cur===n){ arp.cur=null; coreOff(n,true); } }, step*arp.gate);
+    arp.t0+=step; arp.timer=setTimeout(arpTick, Math.max(0,arp.t0-performance.now()));
+  }
+  function arpStart(){ if(arp.timer || !arp.on) return; arp.k=0; arp.t0=performance.now(); arpTick(); }
+  function arpPress(n,vel){
+    if(!ctx) return; if(ctx.state!=='running') ctx.resume();
+    if(arp.latch && arp.down.size===0) arp.notes=[];        // com trava, a nota nova substitui o grupo anterior
+    arp.down.add(n); if(!arp.notes.includes(n)) arp.notes.push(n); arp.vel=vel||100; markKey(n,true); arpStart();
+  }
+  function arpRelease(n){
+    arp.down.delete(n); markKey(n,false);
+    if(arp.latch) return;
+    arp.notes=arp.notes.filter(x=>x!==n); if(!arp.notes.length) arpSilence();
+  }
+  function setArp(on){
+    if(on===arp.on) return;
+    if(on){ arp.notes=stack.slice(); arp.down=new Set(stack); stack=[]; held.clear(); if(ctx&&gate) releaseEnv(); arp.on=true; arpStart(); }
+    else { arp.on=false; arpSilence(); arp.notes=[]; arp.down.clear(); document.querySelectorAll('.k.d').forEach(k=>k.classList.remove('d')); }
+    renderOled(); drawMenuSt();
+  }
 
   // primeiro toque em qualquer lugar liga o áudio e tenta o MIDI
   let triedMidi=false;
@@ -1117,6 +1259,43 @@
     if(!triedMidi){ triedMidi=true; connectMidi(true); }
   }
   ['pointerdown','touchend','click'].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
+
+
+  // ====================== Menu: toque, delay e arpejador ======================
+  const PRIOS=['ÚLTIMA NOTA','MAIS GRAVE','MAIS AGUDA'], VDS=['VOLUME E BRILHO','SÓ VOLUME','SÓ BRILHO'], ATS=['DESLIGADO','VIBRATO','FILTRO','VOLUME'];
+  function drawMenuSt(){
+    $('mPrioSt').textContent=PRIOS[prio]; $('mVelDSt').textContent=VDS[velDest]; $('mAtSt').textContent=ATS[atDest]; $('mHoldSt').textContent=holdOn?'LIGADO':'DESLIGADO';
+    $('mArpSt').textContent=arp.on?'LIGADO · '+APAT[arp.pat]:'DESLIGADO'; $('mDlySt').textContent=P.dm>0.005?Math.round(P.dt*1000)+' ms · '+Math.round(P.dm*100)+'%':'DESLIGADO';
+  }
+  $('mPrio').addEventListener('click',()=>{ prio=(prio+1)%3; LS.set(PRIOK,prio); drawMenuSt(); });
+  $('mVelD').addEventListener('click',()=>{ velDest=(velDest+1)%3; LS.set(VDK,velDest); drawMenuSt(); });
+  $('mAt').addEventListener('click',()=>{ atDest=(atDest+1)%4; LS.set(ATK,atDest); atVal=0; applyAT(); drawMenuSt(); });
+  $('mHold').addEventListener('click',()=>setHold(!holdOn));
+  function mkRow(parent,label){ const r=document.createElement('div'); r.className='fxrow'; r.innerHTML='<span>'+label+'</span>'; parent.appendChild(r); return r; }
+  function mkSlider(parent,label,pos,fmt,onPos){ const r=mkRow(parent,label), i=document.createElement('input'), o=document.createElement('output');
+    i.type='range'; i.min=0; i.max=1000; i.setAttribute('aria-label',label); r.appendChild(i); r.appendChild(o);
+    const draw=()=>{ const p=pos(); i.value=Math.round(p*1000); o.textContent=fmt(p); };
+    i.addEventListener('input',()=>{ onPos(i.value/1000); o.textContent=fmt(i.value/1000); }); r.draw=draw; draw(); return r; }
+  function mkChips(parent,label,names,get,set){ const r=mkRow(parent,label), w=document.createElement('div'); w.className='chips'; r.appendChild(w);
+    names.forEach((n,i)=>{ const b=document.createElement('button'); b.className='btn chip'; b.textContent=n; b.addEventListener('click',()=>{ set(i); r.draw(); }); w.appendChild(b); });
+    r.draw=()=>{ [...w.children].forEach((b,i)=>{ const on=get()===i; b.classList.toggle('cur',on); b.setAttribute('aria-pressed',on?'true':'false'); }); }; r.draw(); return r; }
+  const dlyRows=[];
+  { const b=$('dlyBody'), T=p=>0.02*Math.pow(50,p), Tp=v=>Math.log(v/0.02)/Math.log(50);
+    const upd=()=>{ applyAll(); setDirty(true); drawMenuSt(); };
+    dlyRows.push(mkSlider(b,'TEMPO',()=>Tp(P.dt),p=>Math.round(T(p)*1000)+' ms',p=>{ P.dt=+T(p).toFixed(3); upd(); }));
+    dlyRows.push(mkSlider(b,'REPETIÇÕES',()=>P.df/0.9,p=>Math.round(p*90)+'%',p=>{ P.df=+(p*0.9).toFixed(3); upd(); }));
+    dlyRows.push(mkSlider(b,'MIX',()=>P.dm,p=>Math.round(p*100)+'%',p=>{ P.dm=+p.toFixed(3); upd(); })); }
+  const arpRows=[];
+  { const b=$('arpBody');
+    const onRow=mkChips(b,'ARPEJADOR',['DESLIGADO','LIGADO'],()=>arp.on?1:0,i=>setArp(i===1)); arpRows.push(onRow);
+    arpRows.push(mkChips(b,'PADRÃO',APAT,()=>arp.pat,i=>{ arp.pat=i; arp.k=0; arpSave(); drawMenuSt(); }));
+    arpRows.push(mkChips(b,'DIVISÃO',ADIVN,()=>arp.div,i=>{ arp.div=i; arpSave(); }));
+    arpRows.push(mkChips(b,'OITAVAS',['1','2','3'],()=>arp.oct-1,i=>{ arp.oct=i+1; arpSave(); }));
+    arpRows.push(mkSlider(b,'ANDAMENTO',()=>(arp.bpm-40)/200,p=>Math.round(40+p*200)+' BPM',p=>{ arp.bpm=Math.round(40+p*200); arpSave(); }));
+    arpRows.push(mkSlider(b,'DURAÇÃO',()=>(arp.gate-0.1)/0.85,p=>Math.round((0.1+p*0.85)*100)+'%',p=>{ arp.gate=+(0.1+p*0.85).toFixed(2); arpSave(); }));
+    arpRows.push(mkChips(b,'TRAVA',['DESLIGADA','LIGADA'],()=>arp.latch?1:0,i=>{ arp.latch=i===1; if(!arp.latch && arp.down.size===0){ arp.notes=[]; arpSilence(); } arpSave(); })); }
+  $('mDly').addEventListener('click',()=>{ closeD('dlgMenu'); dlyRows.forEach(r=>r.draw()); openD('dlgDly'); });
+  $('mArp').addEventListener('click',()=>{ closeD('dlgMenu'); arpRows.forEach(r=>r.draw()); openD('dlgArp'); });
 
   // ====================== Rodas de pitch e modulação ======================
   const whP=$('whPitch'), whM=$('whMod');
@@ -1210,6 +1389,8 @@
       followKb(d1); noteOn(d1,d2);
     }
     else if(cmd===0x80 || (cmd===0x90&&d2===0)){ if(actMap['n'+d1]) return; noteOff(d1); }
+    else if(cmd===0xD0){ setAT(d1/127); }
+    else if(cmd===0xA0){ setAT((d2||0)/127); }
     else if(cmd===0xC0){ if(d1<PRESETS.length) loadPreset(d1); }
     else if(cmd===0xE0){ setBend((((d2<<7)|d1)-8192)/8192); }
     else if(cmd===0xB0){
