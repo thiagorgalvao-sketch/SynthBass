@@ -13,8 +13,8 @@ jobs:
       - name: Configure and build
         run: |
           set -o pipefail
-          cmake -S vst -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | tee ../build-mac.log
-          cmake --build build --config Release -j 4 2>&1 | tee -a ../build-mac.log
+          cmake -S vst -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | tee build-mac.log
+          cmake --build build --config Release -j 4 2>&1 | tee -a build-mac.log
       - name: Package
         run: |
           mkdir -p out
@@ -30,9 +30,9 @@ jobs:
         if: always()
         run: |
           git config user.name ci; git config user.email ci@example.com
-          cp ../build-mac.log . 2>/dev/null || true
+          cp build-mac.log /tmp/l.log 2>/dev/null || echo "sem log" > /tmp/l.log
           git checkout --orphan buildlog && git rm -rf . -q || true
-          cp ../build-mac.log build-mac.log 2>/dev/null || echo "sem log" > build-mac.log
+          cp /tmp/l.log build-mac.log
           git add build-mac.log && git commit -m "log mac" -q && git push -f origin buildlog
   win:
     runs-on: windows-latest
@@ -42,8 +42,8 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          cmake -S vst -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | tee ../build-win.log
-          cmake --build build --config Release -j 4 2>&1 | tee -a ../build-win.log
+          cmake -S vst -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | tee build-win.log
+          cmake --build build --config Release -j 4 2>&1 | tee -a build-win.log
       - name: Package
         shell: bash
         run: |
@@ -51,3 +51,13 @@ jobs:
           cd out && 7z a ../AURA-Synth-Bass-Windows.zip . && cd ..
       - uses: actions/upload-artifact@v4
         with: { name: AURA-Synth-Bass-Windows, path: AURA-Synth-Bass-Windows.zip }
+      - name: Push log
+        if: always()
+        shell: bash
+        run: |
+          git config user.name ci; git config user.email ci@example.com
+          cp build-win.log /tmp/l.log 2>/dev/null || echo "sem log" > /tmp/l.log
+          git fetch origin buildlog 2>/dev/null || true
+          git checkout --orphan buildlogwin && git rm -rf . -q || true
+          cp /tmp/l.log build-win.log
+          git add build-win.log && git commit -m "log win" -q && git push -f origin buildlogwin
