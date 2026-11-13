@@ -1,7 +1,0 @@
-name: teste-actions
-on: workflow_dispatch
-jobs:
-  oi:
-    runs-on: macos-latest
-    steps:
-      - run: uname -a && xcodebuild -version && cmake --version
