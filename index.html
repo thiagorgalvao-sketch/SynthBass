@@ -879,7 +879,7 @@
   $('fileIn').addEventListener('change',e=>{ const fs=[...e.target.files]; e.target.value=''; if(fs.length) importFiles(fs); });
 
   // ====================== Menu e cadeado ======================
-  $('menuBtn').addEventListener('click',()=>{ disarm($('mClear')); $('mMidiSt').textContent=midi?(midi.inputs.size?midi.inputs.size+' CONECTADO(S)':'NENHUM'):(navigator.requestMIDIAccess?'CONECTAR':'SEM SUPORTE'); $('mBleSt').textContent=bleName?bleName.toUpperCase():(navigator.bluetooth?'CONECTAR':'SEM SUPORTE'); $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); $('engineInfo').textContent='Força da última nota recebida: '+lastVel+' de 127. Motor de som: '+(V&&V.kind==='worklet'?'completo':'básico (sem sync, largura de pulso, drive e envelope de afinação neste navegador)')+'.'; openD('dlgMenu'); });
+  $('menuBtn').addEventListener('click',()=>{ disarm($('mClear')); $('mMidiSt').textContent=midi?(midi.inputs.size?midi.inputs.size+' CONECTADO(S)':'NENHUM'):(navigator.requestMIDIAccess?'CONECTAR':'SEM SUPORTE'); $('mBleSt').textContent=bleName?bleName.toUpperCase():(navigator.bluetooth?'CONECTAR':'SEM SUPORTE'); $('mVelSt').textContent=VLEV[velLevel][0].toUpperCase(); const bl=ctx?Math.round(((ctx.baseLatency||0)+(ctx.outputLatency||0))*1000):0; $('engineInfo').textContent=(bl?'Atraso do áudio do aparelho: cerca de '+bl+' ms. ':'')+'Força da última nota recebida: '+lastVel+' de 127. Motor de som: '+(V&&V.kind==='worklet'?'completo':'básico (sem sync, largura de pulso, drive e envelope de afinação neste navegador)')+'.'; openD('dlgMenu'); });
   $('mSave').addEventListener('click',()=>{ closeD('dlgMenu'); openSave(); });
   $('mImport').addEventListener('click',()=>{ closeD('dlgMenu'); $('fileIn').click(); });
   $('mExport').addEventListener('click',()=>{ closeD('dlgMenu'); exportAll(); });
@@ -952,7 +952,33 @@
       this.p1=p1;this.p2=p2;this.ps=ps;this.y1=y1;this.y2=y2;this.y3=y3;this.y4=y4; return true;
     }
   }
-  registerProcessor('aura-voice',AuraVoice);`;
+  registerProcessor('aura-voice',AuraVoice);
+  // compressor sem antecipação (o nativo do navegador atrasa o som em 6 ms); mesma curva de nível do nativo
+  class AuraComp extends AudioWorkletProcessor{
+    constructor(){ super();
+      const th=-14, kn=10, ra=5, db=x=>20*Math.log10(x), lt=Math.pow(10,th/20), kt=Math.pow(10,(th+kn)/20), sl=1/ra;
+      const kc=(x,k)=>lt+(1-Math.exp(-k*(x-lt)))/k;
+      const slopeAt=(x,k)=>{ if(x<lt) return 1; const x2=x*1.001; return (db(kc(x2,k))-db(kc(x,k)))/(db(x2)-db(x)); };
+      let lo=0.1, hi=10000, k=5; for(let i=0;i<15;i++){ if(slopeAt(kt,k)<sl) hi=k; else lo=k; k=Math.sqrt(lo*hi); }
+      const yk=db(kc(kt,k)), kdb=th+kn;
+      this.sat=x=>x<lt?x:(x<kt?kc(x,k):Math.pow(10,(yk+sl*(db(x)-kdb))/20));
+      this.mk=Math.pow(1/this.sat(1),0.6);
+      this.e=0; this.g=1; this.n=0; this.er=Math.exp(-1/(0.03*sampleRate));
+      this.ca=1-Math.exp(-4/(0.00008*sampleRate)); this.cr=1-Math.exp(-4/(0.05*sampleRate)); }
+    process(inputs,outputs){
+      const x=inputs[0][0], o=outputs[0][0]; if(!x){ o.fill(0); return true; }
+      let e=this.e, g=this.g, n=this.n, gt=this.gt||1; const er=this.er, ca=this.ca, cr=this.cr, mk=this.mk;
+      for(let i=0;i<o.length;i++){
+        const a=Math.abs(x[i]); e = a>e ? a : e*er;
+        if((n++&3)===0){ gt = e>1e-5 ? this.sat(e)/e : 1; }
+        g += (gt-g)*(gt<g?ca:cr);
+        o[i]=x[i]*g*mk;
+      }
+      this.e=e; this.g=g; this.n=n&3; this.gt=gt; return true;
+    }
+  }
+  registerProcessor('aura-comp',AuraComp);
+`;
 
   let ctx=null, amp=null, velG=null, master=null, comp=null, an=null, lfo=null, lfoP=null, lfoC=null, lfoW=null, V=null;
   const WI = {triangle:0, sawtooth:1, square:2};
@@ -1008,7 +1034,7 @@
     const pre = ctx.createGain(); pre.gain.value = 1/3;
     const sh = ctx.createWaveShaper(), N = 4096, curve = new Float32Array(N);
     for(let i=0;i<N;i++){ const x = (i/(N-1)*2-1)*3, a = Math.abs(x); curve[i] = Math.sign(x) * (a<0.6 ? a : 0.6 + 0.4*Math.tanh((a-0.6)/0.4)); }
-    sh.curve = curve; sh.oversample = '2x';
+    sh.curve = curve; sh.oversample = 'none';
     velG = ctx.createGain(); amp.connect(comp); comp.connect(velG); velG.connect(master); master.connect(an); master.connect(pre); pre.connect(sh); sh.connect(ctx.destination);
     lfo = ctx.createOscillator(); lfoP = ctx.createGain(); lfoC = ctx.createGain(); lfoW = ctx.createGain();
     lfoP.gain.value = lfoC.gain.value = lfoW.gain.value = 0; lfo.connect(lfoP); lfo.connect(lfoC); lfo.connect(lfoW); lfo.start();
@@ -1018,6 +1044,8 @@
       ctx.audioWorklet.addModule(url).then(()=>{
         URL.revokeObjectURL(url);
         const old=V, nv=workletVoice(); old.kill(); V=nv; window.__auraEngine='worklet';
+        try{ const cw=new AudioWorkletNode(ctx,'aura-comp',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1],channelCount:1,channelCountMode:'explicit'});
+          amp.disconnect(comp); comp.disconnect(); amp.connect(cw); cw.connect(velG); comp=cw; window.__auraComp='worklet'; }catch(e){ window.__auraComp='native'; }
         applyAll(); V.freq(noteFreq(lastNote),0,true);
         const t=ctx.currentTime; V.cut.forEach(p=>{ p.setValueAtTime(gate ? Math.min(baseCut()*Math.pow(2,P.fenv*P.fs),20000) : baseCut(), t); });
       }).catch(()=>{ window.__auraEngine='native'; });
